@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Java Rectangle Class Tutorial</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .tutorial-container {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 20px;
+            height: 80vh;
+        }
+
+        .left-panel {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tab-container {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: #e9ecef;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 500;
+            border-right: 1px solid #dee2e6;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            background: white;
+            color: #007bff;
+            border-bottom: 2px solid #007bff;
+        }
+
+        .tab:hover:not(.active) {
+            background: #f8f9fa;
+        }
+
+        .code-window {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+        }
+
+        .code-window.active {
+            display: flex;
+        }
+
+        .code-content {
+            flex: 1;
+            padding: 20px;
+            font-size: 14px;
+            line-height: 1.6;
+            overflow-y: auto;
+            background: #fafafa;
+        }
+
+        .line {
+            display: block;
+            padding: 2px 0;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .line.highlight {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding-left: 16px;
+            transform: scale(1.02);
+            box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+        }
+
+        .line.executing {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding-left: 16px;
+            animation: pulse 1s ease-in-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .debugger-panel, .memory-panel, .console-panel {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            background: linear-gradient(45deg, #007bff, #0056b3);
+            color: white;
+            padding: 15px 20px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .panel-content {
+            padding: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .debugger-panel .panel-content {
+            max-height: 150px;
+        }
+
+        .memory-panel .panel-content {
+            max-height: 250px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border-left: 4px solid #007bff;
+        }
+
+        .memory-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        .memory-table th,
+        .memory-table td {
+            border: 1px solid #dee2e6;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .memory-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .memory-table .highlight {
+            background: #fff3cd;
+            font-weight: bold;
+        }
+
+        .console {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 6px;
+            min-height: 100px;
+            white-space: pre-wrap;
+        }
+
+        /* Syntax highlighting */
+        .keyword { color: #0066cc; font-weight: bold; }
+        .class-name { color: #cc6600; font-weight: bold; }
+        .method { color: #9900cc; }
+        .variable { color: #009900; }
+        .string { color: #cc0000; }
+        .comment { color: #666666; font-style: italic; }
+        .number { color: #ff6600; }
+
+        @media (max-width: 1200px) {
+            .tutorial-container {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .right-panel {
+                order: -1;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Java Rectangle Class: Constructor & Method Debugging</h1>
+        
+        <div class="tutorial-container">
+            <div class="left-panel">
+                <div class="tab-container">
+                    <button class="tab active" onclick="switchTab('main')">Main.java</button>
+                    <button class="tab" onclick="switchTab('rectangle')">Rectangle.java</button>
+                </div>
+                
+                <div class="code-window active" id="main-code">
+                    <div class="code-content">
+<span class="line" data-line="main1" data-file="main"><span class="comment">/**</span></span>
+<span class="line" data-line="main2" data-file="main"><span class="comment"> * Demonstrates Rectangle class usage with debugging</span></span>
+<span class="line" data-line="main3" data-file="main"><span class="comment"> */</span></span>
+<span class="line" data-line="main4" data-file="main"><span class="keyword">public class</span> <span class="class-name">Main</span> {</span>
+<span class="line" data-line="main5" data-file="main">    <span class="keyword">public static void</span> <span class="method">main</span>(<span class="class-name">String</span>[] args) {</span>
+<span class="line" data-line="main6" data-file="main">        <span class="comment">// Create rectangle using default constructor</span></span>
+<span class="line" data-line="main7" data-file="main">        <span class="class-name">Rectangle</span> <span class="variable">rect1</span> = <span class="keyword">new</span> <span class="class-name">Rectangle</span>();</span>
+<span class="line" data-line="main8" data-file="main">        </span>
+<span class="line" data-line="main9" data-file="main">        <span class="comment">// Create rectangle with specific dimensions</span></span>
+<span class="line" data-line="main10" data-file="main">        <span class="class-name">Rectangle</span> <span class="variable">rect2</span> = <span class="keyword">new</span> <span class="class-name">Rectangle</span>(<span class="number">5.0</span>, <span class="number">3.0</span>);</span>
+<span class="line" data-line="main11" data-file="main">        </span>
+<span class="line" data-line="main12" data-file="main">        <span class="comment">// Display rect1 properties</span></span>
+<span class="line" data-line="main13" data-file="main">        <span class="class-name">System</span>.out.<span class="method">println</span>(<span class="string">"Rectangle 1:"</span>);</span>
+<span class="line" data-line="main14" data-file="main">        <span class="class-name">System</span>.out.<span class="method">println</span>(<span class="string">"Width: "</span> + <span class="variable">rect1</span>.<span class="method">getWidth</span>());</span>
+<span class="line" data-line="main15" data-file="main">        <span class="class-name">System</span>.out.<span class="method">println</span>(<span class="string">"Height: "</span> + <span class="variable">rect1</span>.<span class="method">getHeight</span>());</span>
+<span class="line" data-line="main16" data-file="main">        <span class="class-name">System</span>.out.<span class="method">println</span>(<span class="string">"Area: "</span> + <span class="variable">rect1</span>.<span class="method">getArea</span>());</span>
+<span class="line" data-line="main17" data-file="main">        </span>
+<span class="line" data-line="main18" data-file="main">        <span class="comment">// Modify rect1 using setters</span></span>
+<span class="line" data-line="main19" data-file="main">        <span class="variable">rect1</span>.<span class="method">setWidth</span>(<span class="number">4.0</span>);</span>
+<span class="line" data-line="main20" data-file="main">        <span class="variable">rect1</span>.<span class="method">setHeight</span>(<span class="number">6.0</span>);</span>
+<span class="line" data-line="main21" data-file="main">        </span>
+<span class="line" data-line="main22" data-file="main">        <span class="comment">// Display rect2 properties</span></span>
+<span class="line" data-line="main23" data-file="main">        <span class="class-name">System</span>.out.<span class="method">println</span>(<span class="string">"\\nRectangle 2:"</span>);</span>
+<span class="line" data-line="main24" data-file="main">        <span class="class-name">System</span>.out.<span class="method">println</span>(<span class="string">"Width: "</span> + <span class="variable">rect2</span>.<span class="method">getWidth</span>());</span>
+<span class="line" data-line="main25" data-file="main">        <span class="class-name">System</span>.out.<span class="method">println</span>(<span class="string">"Height: "</span> + <span class="variable">rect2</span>.<span class="method">getHeight</span>());</span>
+<span class="line" data-line="main26" data-file="main">        <span class="class-name">System</span>.out.<span class="method">println</span>(<span class="string">"Area: "</span> + <span class="variable">rect2</span>.<span class="method">getArea</span>());</span>
+<span class="line" data-line="main27" data-file="main">        </span>
+<span class="line" data-line="main28" data-file="main">        <span class="comment">// Display updated rect1</span></span>
+<span class="line" data-line="main29" data-file="main">        <span class="class-name">System</span>.out.<span class="method">println</span>(<span class="string">"\\nUpdated Rectangle 1:"</span>);</span>
+<span class="line" data-line="main30" data-file="main">        <span class="class-name">System</span>.out.<span class="method">println</span>(<span class="string">"Area: "</span> + <span class="variable">rect1</span>.<span class="method">getArea</span>());</span>
+<span class="line" data-line="main31" data-file="main">    }</span>
+<span class="line" data-line="main32" data-file="main">}</span>
+                    </div>
+                </div>
+                
+                <div class="code-window" id="rectangle-code">
+                    <div class="code-content">
+<span class="line" data-line="rect1" data-file="rectangle"><span class="comment">/**</span></span>
+<span class="line" data-line="rect2" data-file="rectangle"><span class="comment"> * Simple Rectangle class with constructors and methods</span></span>
+<span class="line" data-line="rect3" data-file="rectangle"><span class="comment"> */</span></span>
+<span class="line" data-line="rect4" data-file="rectangle"><span class="keyword">public class</span> <span class="class-name">Rectangle</span> {</span>
+<span class="line" data-line="rect5" data-file="rectangle">    <span class="comment">// Private fields</span></span>
+<span class="line" data-line="rect6" data-file="rectangle">    <span class="keyword">private double</span> <span class="variable">width</span>;</span>
+<span class="line" data-line="rect7" data-file="rectangle">    <span class="keyword">private double</span> <span class="variable">height</span>;</span>
+<span class="line" data-line="rect8" data-file="rectangle">    </span>
+<span class="line" data-line="rect9" data-file="rectangle">    <span class="comment">// Default constructor</span></span>
+<span class="line" data-line="rect10" data-file="rectangle">    <span class="keyword">public</span> <span class="method">Rectangle</span>() {</span>
+<span class="line" data-line="rect11" data-file="rectangle">        <span class="keyword">this</span>.<span class="variable">width</span> = <span class="number">1.0</span>;</span>
+<span class="line" data-line="rect12" data-file="rectangle">        <span class="keyword">this</span>.<span class="variable">height</span> = <span class="number">1.0</span>;</span>
+<span class="line" data-line="rect13" data-file="rectangle">    }</span>
+<span class="line" data-line="rect14" data-file="rectangle">    </span>
+<span class="line" data-line="rect15" data-file="rectangle">    <span class="comment">// Parameterized constructor</span></span>
+<span class="line" data-line="rect16" data-file="rectangle">    <span class="keyword">public</span> <span class="method">Rectangle</span>(<span class="keyword">double</span> <span class="variable">width</span>, <span class="keyword">double</span> <span class="variable">height</span>) {</span>
+<span class="line" data-line="rect17" data-file="rectangle">        <span class="keyword">this</span>.<span class="variable">width</span> = <span class="variable">width</span>;</span>
+<span class="line" data-line="rect18" data-file="rectangle">        <span class="keyword">this</span>.<span class="variable">height</span> = <span class="variable">height</span>;</span>
+<span class="line" data-line="rect19" data-file="rectangle">    }</span>
+<span class="line" data-line="rect20" data-file="rectangle">    </span>
+<span class="line" data-line="rect21" data-file="rectangle">    <span class="comment">// Getter for width</span></span>
+<span class="line" data-line="rect22" data-file="rectangle">    <span class="keyword">public double</span> <span class="method">getWidth</span>() {</span>
+<span class="line" data-line="rect23" data-file="rectangle">        <span class="keyword">return</span> <span class="variable">width</span>;</span>
+<span class="line" data-line="rect24" data-file="rectangle">    }</span>
+<span class="line" data-line="rect25" data-file="rectangle">    </span>
+<span class="line" data-line="rect26" data-file="rectangle">    <span class="comment">// Getter for height</span></span>
+<span class="line" data-line="rect27" data-file="rectangle">    <span class="keyword">public double</span> <span class="method">getHeight</span>() {</span>
+<span class="line" data-line="rect28" data-file="rectangle">        <span class="keyword">return</span> <span class="variable">height</span>;</span>
+<span class="line" data-line="rect29" data-file="rectangle">    }</span>
+<span class="line" data-line="rect30" data-file="rectangle">    </span>
+<span class="line" data-line="rect31" data-file="rectangle">    <span class="comment">// Setter for width</span></span>
+<span class="line" data-line="rect32" data-file="rectangle">    <span class="keyword">public void</span> <span class="method">setWidth</span>(<span class="keyword">double</span> <span class="variable">width</span>) {</span>
+<span class="line" data-line="rect33" data-file="rectangle">        <span class="keyword">this</span>.<span class="variable">width</span> = <span class="variable">width</span>;</span>
+<span class="line" data-line="rect34" data-file="rectangle">    }</span>
+<span class="line" data-line="rect35" data-file="rectangle">    </span>
+<span class="line" data-line="rect36" data-file="rectangle">    <span class="comment">// Setter for height</span></span>
+<span class="line" data-line="rect37" data-file="rectangle">    <span class="keyword">public void</span> <span class="method">setHeight</span>(<span class="keyword">double</span> <span class="variable">height</span>) {</span>
+<span class="line" data-line="rect38" data-file="rectangle">        <span class="keyword">this</span>.<span class="variable">height</span> = <span class="variable">height</span>;</span>
+<span class="line" data-line="rect39" data-file="rectangle">    }</span>
+<span class="line" data-line="rect40" data-file="rectangle">    </span>
+<span class="line" data-line="rect41" data-file="rectangle">    <span class="comment">// Calculate and return area</span></span>
+<span class="line" data-line="rect42" data-file="rectangle">    <span class="keyword">public double</span> <span class="method">getArea</span>() {</span>
+<span class="line" data-line="rect43" data-file="rectangle">        <span class="keyword">return</span> <span class="variable">width</span> * <span class="variable">height</span>;</span>
+<span class="line" data-line="rect44" data-file="rectangle">    }</span>
+<span class="line" data-line="rect45" data-file="rectangle">}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <div class="debugger-panel">
+                    <div class="panel-header">🐛 Debugger Controls</div>
+                    <div class="panel-content">
+                        <div class="controls">
+                            <button class="btn btn-primary" id="startBtn" onclick="startExecution()">▶️ Start</button>
+                            <button class="btn btn-secondary" id="stepBtn" onclick="stepExecution()" disabled>⏭️ Step</button>
+                            <button class="btn btn-secondary" id="resetBtn" onclick="resetExecution()">🔄 Reset</button>
+                        </div>
+                        <div class="status" id="debugStatus">Ready to execute. Click Start to begin.</div>
+                    </div>
+                </div>
+
+                <div class="memory-panel">
+                    <div class="panel-header">💾 Object Memory</div>
+                    <div class="panel-content">
+                        <table class="memory-table" id="memoryTable">
+                            <thead>
+                                <tr>
+                                    <th>Variable</th>
+                                    <th>Type</th>
+                                    <th>Address</th>
+                                    <th>Width</th>
+                                    <th>Height</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td colspan="5" style="text-align: center; color: #666;">No objects created yet</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="console-panel">
+                    <div class="panel-header">🖥️ Console Output</div>
+                    <div class="panel-content">
+                        <div class="console" id="console">Program ready to run...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 0;
+        let isExecuting = false;
+        let currentFile = 'main';
+
+        const executionSteps = [
+            {
+                line: 'main7',
+                file: 'main',
+                status: 'Creating Rectangle object with default constructor',
+                action: () => {
+                    // Switch to Rectangle class to show constructor
+                    setTimeout(() => {
+                        switchTab('rectangle');
+                        highlightLine('rect10', 'rectangle');
+                    }, 1000);
+                }
+            },
+            {
+                line: 'rect11',
+                file: 'rectangle',
+                status: 'Inside default constructor: setting width = 1.0',
+                action: () => {
+                    updateMemory('rect1', 'Rectangle', '0x7fff5fbff700', '1.0', '?');
+                }
+            },
+            {
+                line: 'rect12',
+                file: 'rectangle',
+                status: 'Inside default constructor: setting height = 1.0',
+                action: () => {
+                    updateMemory('rect1', 'Rectangle', '0x7fff5fbff700', '1.0', '1.0');
+                }
+            },
+            {
+                line: 'rect13',
+                file: 'rectangle',
+                status: 'Default constructor complete. Returning to main.',
+                action: () => {
+                    setTimeout(() => {
+                        switchTab('main');
+                        highlightLine('main7', 'main');
+                    }, 1000);
+                }
+            },
+            {
+                line: 'main10',
+                file: 'main',
+                status: 'Creating second Rectangle with parameters (5.0, 3.0)',
+                action: () => {
+                    setTimeout(() => {
+                        switchTab('rectangle');
+                        highlightLine('rect16', 'rectangle');
+                    }, 1000);
+                }
+            },
+            {
+                line: 'rect17',
+                file: 'rectangle',
+                status: 'Inside parameterized constructor: setting width = 5.0',
+                action: () => {
+                    updateMemory('rect2', 'Rectangle', '0x7fff5fbff800', '5.0', '?');
+                }
+            },
+            {
+                line: 'rect18',
+                file: 'rectangle',
+                status: 'Inside parameterized constructor: setting height = 3.0',
+                action: () => {
+                    updateMemory('rect2', 'Rectangle', '0x7fff5fbff800', '5.0', '3.0');
+                }
+            },
+            {
+                line: 'rect19',
+                file: 'rectangle',
+                status: 'Parameterized constructor complete. Returning to main.',
+                action: () => {
+                    setTimeout(() => {
+                        switchTab('main');
+                        highlightLine('main10', 'main');
+                    }, 1000);
+                }
+            },
+            {
+                line: 'main13',
+                file: 'main',
+                status: 'Printing "Rectangle 1:" to console',
+                action: () => {
+                    document.getElementById('console').innerHTML += '\nRectangle 1:';
+                }
+            },
+            {
+                line: 'main14',
+                file: 'main',
+                status: 'Calling getWidth() method on rect1',
+                action: () => {
+                    setTimeout(() => {
+                        switchTab('rectangle');
+                        highlightLine('rect22', 'rectangle');
+                    }, 1000);
+                }
+            },
+            {
+                line: 'rect23',
+                file: 'rectangle',
+                status: 'Inside getWidth(): returning width value (1.0)',
+                action: () => {
+                    setTimeout(() => {
+                        switchTab('main');
+                        highlightLine('main14', 'main');
+                        document.getElementById('console').innerHTML += '\nWidth: 1.0';
+                    }, 1000);
+                }
+            },
+            {
+                line: 'main15',
+                file: 'main',
+                status: 'Calling getHeight() method on rect1',
+                action: () => {
+                    setTimeout(() => {
+                        switchTab('rectangle');
+                        highlightLine('rect27', 'rectangle');
+                    }, 1000);
+                }
+            },
+            {
+                line: 'rect28',
+                file: 'rectangle',
+                status: 'Inside getHeight(): returning height value (1.0)',
+                action: () => {
+                    setTimeout(() => {
+                        switchTab('main');
+                        highlightLine('main15', 'main');
+                        document.getElementById('console').innerHTML += '\nHeight: 1.0';
+                    }, 1000);
+                }
+            },
+            {
+                line: 'main16',
+                file: 'main',
+                status: 'Calling getArea() method on rect1',
+                action: () => {
+                    setTimeout(() => {
+                        switchTab('rectangle');
+                        highlightLine('rect42', 'rectangle');
+                    }, 1000);
+                }
+            },
+            {
+                line: 'rect43',
+                file: 'rectangle',
+                status: 'Inside getArea(): calculating width * height (1.0 * 1.0 = 1.0)',
+                action: () => {
+                    setTimeout(() => {
+                        switchTab('main');
+                        highlightLine('main16', 'main');
+                        document.getElementById('console').innerHTML += '\nArea: 1.0';
+                    }, 1000);
+                }
+            },
+            {
+                line: 'main19',
+                file: 'main',
+                status: 'Calling setWidth(4.0) on rect1',
+                action: () => {
+                    setTimeout(() => {
+                        switchTab('rectangle');
+                        highlightLine('rect32', 'rectangle');
+                    }, 1000);
+                }
+            },
+            {
+                line: 'rect33',
+                file: 'rectangle',
+                status: 'Inside setWidth(): setting width = 4.0',
+                action: () => {
+                    updateMemory('rect1', 'Rectangle', '0x7fff5fbff700', '4.0', '1.0');
+                    setTimeout(() => {
+                        switchTab('main');
+                        highlightLine('main19', 'main');
+                    }, 1000);
+                }
+            },
+            {
+                line: 'main20',
+                file: 'main',
+                status: 'Calling setHeight(6.0) on rect1',
+                action: () => {
+                    setTimeout(() => {
+                        switchTab('rectangle');
+                        highlightLine('rect37', 'rectangle');
+                    }, 1000);
+                }
+            },
+            {
+                line: 'rect38',
+                file: 'rectangle',
+                status: 'Inside setHeight(): setting height = 6.0',
+                action: () => {
+                    updateMemory('rect1', 'Rectangle', '0x7fff5fbff700', '4.0', '6.0');
+                    setTimeout(() => {
+                        switchTab('main');
+                        highlightLine('main20', 'main');
+                    }, 1000);
+                }
+            },
+            {
+                line: 'main23',
+                file: 'main',
+                status: 'Printing "Rectangle 2:" to console',
+                action: () => {
+                    document.getElementById('console').innerHTML += '\n\nRectangle 2:';
+                }
+            },
+            {
+                line: 'main24',
+                file: 'main',
+                status: 'Getting width of rect2 and printing',
+                action: () => {
+                    document.getElementById('console').innerHTML += '\nWidth: 5.0';
+                }
+            },
+            {
+                line: 'main25',
+                file: 'main',
+                status: 'Getting height of rect2 and printing',
+                action: () => {
+                    document.getElementById('console').innerHTML += '\nHeight: 3.0';
+                }
+            },
+            {
+                line: 'main26',
+                file: 'main',
+                status: 'Calculating and printing area of rect2 (5.0 * 3.0 = 15.0)',
+                action: () => {
+                    document.getElementById('console').innerHTML += '\nArea: 15.0';
+                }
+            },
+            {
+                line: 'main29',
+                file: 'main',
+                status: 'Printing "Updated Rectangle 1:" to console',
+                action: () => {
+                    document.getElementById('console').innerHTML += '\n\nUpdated Rectangle 1:';
+                }
+            },
+            {
+                line: 'main30',
+                file: 'main',
+                status: 'Calculating final area of rect1 (4.0 * 6.0 = 24.0)',
+                action: () => {
+                    document.getElementById('console').innerHTML += '\nArea: 24.0';
+                }
+            },
+            {
+                line: 'main32',
+                file: 'main',
+                status: 'Program execution complete!',
+                action: () => {
+                    document.getElementById('console').innerHTML += '\n\n--- Program finished ---';
+                    document.getElementById('startBtn').disabled = false;
+                    document.getElementById('stepBtn').disabled = true;
+                    isExecuting = false;
+                }
+            }
+        ];
+
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
+            
+            // Update code windows
+            document.querySelectorAll('.code-window').forEach(window => window.classList.remove('active'));
+            document.getElementById(`${tabName}-code`).classList.add('active');
+            
+            currentFile = tabName;
+        }
+
+        function highlightLine(lineId, file) {
+            // Clear previous highlights
+            document.querySelectorAll('.line').forEach(line => {
+                line.classList.remove('highlight', 'executing');
+            });
+            
+            // Highlight current line
+            const lineElement = document.querySelector(`[data-line="${lineId}"]`);
+            if (lineElement) {
+                lineElement.classList.add('executing');
+                lineElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        function updateMemory(variable, type, address, width, height) {
+            const tbody = document.querySelector('#memoryTable tbody');
+            
+            // Remove "no objects" row if present
+            const emptyRow = tbody.querySelector('td[colspan="5"]');
+            if (emptyRow) {
+                emptyRow.parentElement.remove();
+            }
+            
+            // Check if variable already exists
+            let existingRow = tbody.querySelector(`[data-variable="${variable}"]`);
+            
+            if (!existingRow) {
+                existingRow = document.createElement('tr');
+                existingRow.setAttribute('data-variable', variable);
+                tbody.appendChild(existingRow);
+            }
+            
+            existingRow.innerHTML = `
+                <td class="highlight">${variable}</td>
+                <td>${type}</td>
+                <td>${address}</td>
+                <td class="highlight">${width}</td>
+                <td class="highlight">${height}</td>
+            `;
+            
+            // Remove highlight after a moment
+            setTimeout(() => {
+                existingRow.querySelectorAll('.highlight').forEach(cell => {
+                    cell.classList.remove('highlight');
+                });
+            }, 2000);
+        }
+
+        function startExecution() {
+            if (isExecuting) return;
+            
+            isExecuting = true;
+            currentStep = 0;
+            
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('stepBtn').disabled = false;
+            document.getElementById('console').innerHTML = 'Starting execution...\n';
+            
+            // Clear memory table
+            const tbody = document.querySelector('#memoryTable tbody');
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #666;">No objects created yet</td></tr>';
+            
+            stepExecution();
+        }
+
+        function stepExecution() {
+            if (currentStep >= executionSteps.length) {
+                return;
+            }
+            
+            const step = executionSteps[currentStep];
+            
+            // Switch to correct file if needed
+            if (step.file !== currentFile) {
+                switchTab(step.file);
+            }
+            
+            // Update status
+            document.getElementById('debugStatus').innerHTML = `Step ${currentStep + 1}/${executionSteps.length}: ${step.status}`;
+            
+            // Highlight line
+            highlightLine(step.line, step.file);
+            
+            // Execute action
+            if (step.action) {
+                step.action();
+            }
+            
+            currentStep++;
+            
+            if (currentStep >= executionSteps.length) {
+                document.getElementById('stepBtn').disabled = true;
+            }
+        }
+
+        function resetExecution() {
+            currentStep = 0;
+            isExecuting = false;
+            
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('stepBtn').disabled = true;
+            document.getElementById('debugStatus').innerHTML = 'Ready to execute. Click Start to begin.';
+            document.getElementById('console').innerHTML = 'Program ready to run...';
+            
+            // Clear highlights
+            document.querySelectorAll('.line').forEach(line => {
+                line.classList.remove('highlight', 'executing');
+            });
+            
+            // Reset memory table
+            const tbody = document.querySelector('#memoryTable tbody');
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #666;">No objects created yet</td></tr>';
+            
+            // Switch back to main tab
+            switchTab('main');
+        }
+    </script>
+</body>
+</html>
