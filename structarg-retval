@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Structure Arguments and Return - Debugging Animation</title>
+    <style>
+        body {
+            font-family: 'Consolas', 'Monaco', monospace;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: #fff;
+            min-width: 800px;
+            overflow-x: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 800px;
+            margin: 0 auto;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #00d4ff;
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: 420px 360px;
+            gap: 20px;
+            min-width: 800px;
+            max-width: 800px;
+        }
+
+        .left-column {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .right-column {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .code-window, .memory-window, .console-window {
+            border: 2px solid #4a90e2;
+            border-radius: 12px;
+            background: #2a2a2a;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(74, 144, 226, 0.2);
+        }
+
+        .window-header {
+            background: linear-gradient(90deg, #4a90e2 0%, #5ba0f2 100%);
+            padding: 8px 15px;
+            font-weight: bold;
+            font-size: 14px;
+            color: #ffffff;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .code-content {
+            padding: 15px;
+            font-size: 13px;
+            line-height: 0.8;
+            height: 700px;
+            overflow-y: auto;
+            white-space: pre;
+        }
+
+        .code-line {
+            display: block;
+            padding: 0;
+            border-radius: 3px;
+            transition: all 0.3s ease;
+        }
+
+        .code-line.current {
+            background: linear-gradient(90deg, #4a90e2 0%, #357abd 100%);
+            padding-left: 7px;
+            padding-top: 1px;
+            padding-bottom: 1px;
+            box-shadow: 0 0 8px rgba(74, 144, 226, 0.4);
+        }
+
+        .code-line.error {
+            background: linear-gradient(90deg, #e74c3c 0%, #c0392b 100%);
+            padding-left: 7px;
+            padding-top: 1px;
+            padding-bottom: 1px;
+            box-shadow: 0 0 8px rgba(231, 76, 60, 0.4);
+        }
+
+        .code-line.correct {
+            background: linear-gradient(90deg, #27ae60 0%, #219a52 100%);
+            padding-left: 7px;
+            padding-top: 1px;
+            padding-bottom: 1px;
+            box-shadow: 0 0 8px rgba(39, 174, 96, 0.4);
+        }
+
+        .memory-content {
+            padding: 15px;
+            height: 180px;
+            overflow-y: auto;
+        }
+
+        .memory-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        .memory-table th {
+            background: linear-gradient(90deg, #9b59b6 0%, #8e44ad 100%);
+            padding: 8px;
+            text-align: left;
+            border: 1px solid #bb70d9;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .memory-table td {
+            padding: 6px 8px;
+            border: 1px solid #666;
+            transition: all 0.3s ease;
+            background: #353535;
+        }
+
+        .memory-row.highlight {
+            background: linear-gradient(90deg, #4a90e2 0%, #357abd 100%) !important;
+            box-shadow: 0 0 10px rgba(74, 144, 226, 0.5);
+        }
+
+        .memory-row.error-highlight {
+            background: linear-gradient(90deg, #e74c3c 0%, #c0392b 100%) !important;
+            box-shadow: 0 0 10px rgba(231, 76, 60, 0.5);
+        }
+
+        .memory-row.copying {
+            background: linear-gradient(90deg, #f39c12 0%, #e67e22 100%) !important;
+            box-shadow: 0 0 10px rgba(243, 156, 18, 0.5);
+            animation: copyPulse 0.8s ease-in-out;
+        }
+
+        @keyframes copyPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .variable-name {
+            font-weight: bold;
+            color: #00d4ff;
+        }
+
+        .address {
+            color: #f39c12;
+            font-family: monospace;
+            font-weight: bold;
+        }
+
+        .content {
+            color: #e67e22;
+            font-weight: bold;
+        }
+
+        .content.undefined {
+            color: #95a5a6;
+            font-style: italic;
+        }
+
+        .content.pointer {
+            color: #f1c40f;
+            font-weight: bold;
+        }
+
+        .console-content {
+            padding: 15px;
+            height: 120px;
+            overflow-y: auto;
+            font-size: 12px;
+            background: #0c0c0c;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+        }
+
+        .error-text {
+            color: #ff6b6b;
+            font-weight: bold;
+        }
+
+        .success-text {
+            color: #51cf66;
+            font-weight: bold;
+        }
+
+        .controls {
+            grid-column: 1 / -1;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            margin: 0 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            background: #555;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .status {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 15px;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            border-radius: 8px;
+            margin-top: 20px;
+            font-weight: bold;
+            border: 2px solid #3498db;
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
+        }
+
+        .stack-frame {
+            border: 2px dashed #666;
+            margin: 5px 0;
+            padding: 5px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.05);
+            font-size: 11px;
+        }
+
+        .frame-label {
+            color: #00d4ff;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="page-title">Structure Arguments and Return Values</div>
+        <div class="grid-container">
+            <div class="left-column">
+                <div class="code-window">
+                    <div class="window-header">C++ Code</div>
+                    <div class="code-content" id="code-display">
+<span class="code-line" data-line="1">#include &lt;iostream&gt;</span>
+<span class="code-line" data-line="2">#include &lt;string&gt;</span>
+<span class="code-line" data-line="3">using namespace std;</span>
+<span class="code-line" data-line="4"></span>
+<span class="code-line" data-line="5">struct Student {</span>
+<span class="code-line" data-line="6">    string name;</span>
+<span class="code-line" data-line="7">    int age;</span>
+<span class="code-line" data-line="8">    float gpa;</span>
+<span class="code-line" data-line="9">};</span>
+<span class="code-line" data-line="10"></span>
+<span class="code-line" data-line="11">// Pass by value</span>
+<span class="code-line" data-line="12">void printStudent(Student s) {</span>
+<span class="code-line" data-line="13">    cout &lt;&lt; "Name: " &lt;&lt; s.name &lt;&lt; endl;</span>
+<span class="code-line" data-line="14">    s.age = 25; // Modifies copy only</span>
+<span class="code-line" data-line="15">}</span>
+<span class="code-line" data-line="16"></span>
+<span class="code-line" data-line="17">// Return struct by value</span>
+<span class="code-line" data-line="18">Student createStudent() {</span>
+<span class="code-line" data-line="19">    Student temp;</span>
+<span class="code-line" data-line="20">    temp.name = "Alice";</span>
+<span class="code-line" data-line="21">    temp.age = 22;</span>
+<span class="code-line" data-line="22">    temp.gpa = 3.8;</span>
+<span class="code-line" data-line="23">    return temp;</span>
+<span class="code-line" data-line="24">}</span>
+<span class="code-line" data-line="25"></span>
+<span class="code-line" data-line="26">int main() {</span>
+<span class="code-line" data-line="27">    Student john = {"John", 20, 3.5};</span>
+<span class="code-line" data-line="28">    </span>
+<span class="code-line" data-line="29">    cout &lt;&lt; "Before: " &lt;&lt; john.age &lt;&lt; endl;</span>
+<span class="code-line" data-line="30">    printStudent(john);</span>
+<span class="code-line" data-line="31">    cout &lt;&lt; "After: " &lt;&lt; john.age &lt;&lt; endl;</span>
+<span class="code-line" data-line="32">    </span>
+<span class="code-line" data-line="33">    Student alice = createStudent();</span>
+<span class="code-line" data-line="34">    cout &lt;&lt; "New student: " &lt;&lt; alice.name;</span>
+<span class="code-line" data-line="35">    return 0;</span>
+<span class="code-line" data-line="36">}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="right-column">
+                <div class="memory-window">
+                    <div class="window-header">Memory State</div>
+                    <div class="memory-content">
+                        <div id="stack-display">
+                            <div class="stack-frame" id="main-frame">
+                                <div class="frame-label">main() stack frame</div>
+                                <table class="memory-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Variable</th>
+                                            <th>Address</th>
+                                            <th>Content</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="memory-row" data-var="john">
+                                            <td class="variable-name">john</td>
+                                            <td class="address">0x7fff1234</td>
+                                            <td class="content undefined">uninitialized</td>
+                                        </tr>
+                                        <tr class="memory-row" data-var="alice" style="display: none;">
+                                            <td class="variable-name">alice</td>
+                                            <td class="address">0x7fff1240</td>
+                                            <td class="content undefined">uninitialized</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <div class="stack-frame" id="print-frame" style="display: none;">
+                                <div class="frame-label">printStudent() stack frame</div>
+                                <table class="memory-table">
+                                    <tbody>
+                                        <tr class="memory-row" data-var="s-param">
+                                            <td class="variable-name">s (COPY)</td>
+                                            <td class="address">0x7fff1200</td>
+                                            <td class="content">{"John", 20, 3.5}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <div class="stack-frame" id="create-frame" style="display: none;">
+                                <div class="frame-label">createStudent() stack frame</div>
+                                <table class="memory-table">
+                                    <tbody>
+                                        <tr class="memory-row" data-var="temp">
+                                            <td class="variable-name">temp</td>
+                                            <td class="address">0x7fff1180</td>
+                                            <td class="content undefined">uninitialized</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="console-window">
+                    <div class="window-header">Console Output</div>
+                    <div class="console-content" id="console-output">Ready to run demonstration...</div>
+                </div>
+            </div>
+
+            <div class="status" id="status">
+                Click "Run Demo" to see how structures are passed as arguments and returned by value, or use "Next Step" for manual control.
+            </div>
+
+            <div class="controls">
+                <button class="btn" id="runBtn" onclick="runDemo()">Run Demo</button>
+                <button class="btn" id="stepBtn" onclick="nextStep()">Next Step</button>
+                <button class="btn" id="resetBtn" onclick="resetDemo()">Reset</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 0;
+        let isRunning = false;
+        let autoMode = false;
+
+        const steps = [
+            {
+                line: 27,
+                explanation: "Creating Student 'john' with initial values in main()",
+                console: "",
+                memory: {
+                    "john": { content: '{"John", 20, 3.5}', class: "" }
+                },
+                highlight: "john"
+            },
+            {
+                line: 29,
+                explanation: "Printing john's age before function call",
+                console: "Before: 20",
+                memory: {},
+                highlight: "john"
+            },
+            {
+                line: 30,
+                explanation: "Calling printStudent(john) - This creates a COPY of john",
+                console: "Before: 20",
+                memory: {},
+                showFrame: "print-frame",
+                copyAnimation: "s-param"
+            },
+            {
+                line: 13,
+                explanation: "Inside printStudent: accessing the COPY's name",
+                console: "Before: 20<br>Name: John",
+                memory: {},
+                highlight: "s-param"
+            },
+            {
+                line: 14,
+                explanation: "Modifying the copy's age to 25 - original john is unchanged!",
+                console: "Before: 20<br>Name: John",
+                memory: {
+                    "s-param": { content: '{"John", 25, 3.5}', class: "" }
+                },
+                highlight: "s-param",
+                success: true
+            },
+            {
+                line: 15,
+                explanation: "Function ends - copy is destroyed, stack frame removed",
+                console: "Before: 20<br>Name: John",
+                memory: {},
+                hideFrame: "print-frame"
+            },
+            {
+                line: 31,
+                explanation: "Back in main: john's age is still 20 (unchanged)",
+                console: "Before: 20<br>Name: John<br>After: 20",
+                memory: {},
+                highlight: "john",
+                success: true
+            },
+            {
+                line: 33,
+                explanation: "Calling createStudent() to return a struct by value",
+                console: "Before: 20<br>Name: John<br>After: 20",
+                memory: {},
+                showFrame: "create-frame",
+                showVar: "alice"
+            },
+            {
+                line: 19,
+                explanation: "Creating local 'temp' variable in createStudent()",
+                console: "Before: 20<br>Name: John<br>After: 20",
+                memory: {
+                    "temp": { content: "declared", class: "" }
+                },
+                highlight: "temp"
+            },
+            {
+                line: 20,
+                explanation: "Setting temp.name = 'Alice'",
+                console: "Before: 20<br>Name: John<br>After: 20",
+                memory: {
+                    "temp": { content: '{"Alice", ?, ?}', class: "" }
+                },
+                highlight: "temp"
+            },
+            {
+                line: 21,
+                explanation: "Setting temp.age = 22",
+                console: "Before: 20<br>Name: John<br>After: 20",
+                memory: {
+                    "temp": { content: '{"Alice", 22, ?}', class: "" }
+                },
+                highlight: "temp"
+            },
+            {
+                line: 22,
+                explanation: "Setting temp.gpa = 3.8",
+                console: "Before: 20<br>Name: John<br>After: 20",
+                memory: {
+                    "temp": { content: '{"Alice", 22, 3.8}', class: "" }
+                },
+                highlight: "temp"
+            },
+            {
+                line: 23,
+                explanation: "Returning temp by value - creates a copy for the caller",
+                console: "Before: 20<br>Name: John<br>After: 20",
+                memory: {
+                    "alice": { content: '{"Alice", 22, 3.8}', class: "" }
+                },
+                copyAnimation: "alice"
+            },
+            {
+                line: 24,
+                explanation: "Function ends - local 'temp' is destroyed, but copy was returned",
+                console: "Before: 20<br>Name: John<br>After: 20",
+                memory: {},
+                hideFrame: "create-frame",
+                highlight: "alice"
+            },
+            {
+                line: 34,
+                explanation: "alice now contains the returned copy with all the values",
+                console: "Before: 20<br>Name: John<br>After: 20<br>New student: Alice",
+                memory: {},
+                highlight: "alice",
+                success: true
+            }
+        ];
+
+        function updateDisplay(step) {
+            // Clear previous highlights
+            document.querySelectorAll('.code-line').forEach(line => {
+                line.classList.remove('current', 'error', 'correct');
+            });
+            document.querySelectorAll('.memory-row').forEach(row => {
+                row.classList.remove('highlight', 'error-highlight', 'copying');
+            });
+
+            const stepData = steps[step];
+            
+            // Highlight current line
+            const currentLine = document.querySelector(`[data-line="${stepData.line}"]`);
+            if (currentLine) {
+                if (stepData.error) {
+                    currentLine.classList.add('error');
+                } else if (stepData.success) {
+                    currentLine.classList.add('correct');
+                } else {
+                    currentLine.classList.add('current');
+                }
+            }
+
+            // Show/hide stack frames
+            if (stepData.showFrame) {
+                document.getElementById(stepData.showFrame).style.display = 'block';
+            }
+            if (stepData.hideFrame) {
+                document.getElementById(stepData.hideFrame).style.display = 'none';
+            }
+
+            // Show/hide variables
+            if (stepData.showVar) {
+                const varRow = document.querySelector(`[data-var="${stepData.showVar}"]`);
+                if (varRow) varRow.style.display = 'table-row';
+            }
+
+            // Update memory
+            if (stepData.memory) {
+                Object.keys(stepData.memory).forEach(varName => {
+                    const row = document.querySelector(`[data-var="${varName}"]`);
+                    if (row) {
+                        const contentCell = row.querySelector('.content');
+                        const memData = stepData.memory[varName];
+                        contentCell.textContent = memData.content;
+                        contentCell.className = `content ${memData.class}`;
+                    }
+                });
+            }
+
+            // Copy animation
+            if (stepData.copyAnimation) {
+                const row = document.querySelector(`[data-var="${stepData.copyAnimation}"]`);
+                if (row) {
+                    row.classList.add('copying');
+                }
+            }
+
+            // Highlight memory row
+            if (stepData.highlight) {
+                const row = document.querySelector(`[data-var="${stepData.highlight}"]`);
+                if (row) {
+                    if (stepData.error) {
+                        row.classList.add('error-highlight');
+                    } else {
+                        row.classList.add('highlight');
+                    }
+                }
+            }
+
+            // Update console
+            if (stepData.console !== undefined) {
+                document.getElementById('console-output').innerHTML = stepData.console;
+            }
+
+            // Update status
+            document.getElementById('status').textContent = stepData.explanation;
+        }
+
+        function nextStep() {
+            if (currentStep < steps.length) {
+                updateDisplay(currentStep);
+                currentStep++;
+                
+                if (currentStep >= steps.length) {
+                    document.getElementById('stepBtn').disabled = true;
+                    document.getElementById('status').textContent = "Demonstration complete! Key takeaway: Structures are copied when passed as arguments and when returned from functions.";
+                }
+            }
+        }
+
+        function runDemo() {
+            if (isRunning) return;
+            
+            isRunning = true;
+            autoMode = true;
+            document.getElementById('runBtn').disabled = true;
+            document.getElementById('stepBtn').disabled = true;
+            
+            currentStep = 0;
+            
+            function autoStep() {
+                if (currentStep < steps.length) {
+                    nextStep();
+                    setTimeout(autoStep, 1500);
+                } else {
+                    isRunning = false;
+                    document.getElementById('resetBtn').disabled = false;
+                }
+            }
+            
+            autoStep();
+        }
+
+        function resetDemo() {
+            currentStep = 0;
+            isRunning = false;
+            autoMode = false;
+            
+            // Reset buttons
+            document.getElementById('runBtn').disabled = false;
+            document.getElementById('stepBtn').disabled = false;
+            document.getElementById('resetBtn').disabled = false;
+            
+            // Clear highlights
+            document.querySelectorAll('.code-line').forEach(line => {
+                line.classList.remove('current', 'error', 'correct');
+            });
+            document.querySelectorAll('.memory-row').forEach(row => {
+                row.classList.remove('highlight', 'error-highlight', 'copying');
+            });
+            
+            // Hide frames
+            document.getElementById('print-frame').style.display = 'none';
+            document.getElementById('create-frame').style.display = 'none';
+            
+            // Hide alice variable
+            const aliceRow = document.querySelector('[data-var="alice"]');
+            if (aliceRow) aliceRow.style.display = 'none';
+            
+            // Reset memory content
+            const johnRow = document.querySelector('[data-var="john"]');
+            if (johnRow) {
+                johnRow.querySelector('.content').textContent = 'uninitialized';
+                johnRow.querySelector('.content').className = 'content undefined';
+            }
+            
+            // Reset console and status
+            document.getElementById('console-output').innerHTML = 'Ready to run demonstration...';
+            document.getElementById('status').textContent = 'Click "Run Demo" to see how structures are passed as arguments and returned by value, or use "Next Step" for manual control.';
+        }
+
+        // Initialize
+        resetDemo();
+    </script>
+</body>
+</html>
