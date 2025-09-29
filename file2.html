@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Formatting & Stream Functions - C++ Animation</title>
+    <style>
+        body {
+            font-family: 'Consolas', 'Monaco', monospace;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: #fff;
+            min-width: 800px;
+            overflow-x: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 900px;
+            margin: 0 auto;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #00d4ff;
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: 500px 380px;
+            gap: 20px;
+            min-width: 900px;
+            max-width: 900px;
+        }
+
+        .left-column {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .right-column {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .code-window, .file-window, .memory-window, .console-window, .function-window {
+            border: 2px solid #4a90e2;
+            border-radius: 12px;
+            background: #2a2a2a;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(74, 144, 226, 0.2);
+        }
+
+        .window-header {
+            background: linear-gradient(90deg, #4a90e2 0%, #5ba0f2 100%);
+            padding: 8px 15px;
+            font-weight: bold;
+            font-size: 14px;
+            color: #ffffff;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .code-content {
+            padding: 15px;
+            font-size: 12px;
+            line-height: 0.9;
+            height: 440px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            white-space: pre;
+        }
+
+        .function-content {
+            padding: 15px;
+            font-size: 12px;
+            line-height: 0.9;
+            height: 158px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            white-space: pre;
+            background: #1e1e1e;
+        }
+
+        .file-content {
+            padding: 15px;
+            height: 100px;
+            overflow-y: auto;
+            font-size: 11px;
+            background: #1a1a1a;
+            color: #e0e0e0;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            border-radius: 4px;
+            margin: 5px;
+            border: 1px solid #555;
+        }
+
+        .file-empty {
+            color: #888;
+            font-style: italic;
+            text-align: center;
+            line-height: 100px;
+        }
+
+        .file-error {
+            color: #ff6b6b;
+            font-style: italic;
+            text-align: center;
+            line-height: 100px;
+        }
+
+        .file-writing {
+            animation: writeGlow 1s ease-in-out;
+        }
+
+        .file-reading {
+            animation: readGlow 1s ease-in-out;
+        }
+
+        @keyframes writeGlow {
+            0%, 100% { box-shadow: 0 0 5px rgba(76, 175, 80, 0.3); }
+            50% { box-shadow: 0 0 15px rgba(76, 175, 80, 0.8); }
+        }
+
+        @keyframes readGlow {
+            0%, 100% { box-shadow: 0 0 5px rgba(33, 150, 243, 0.3); }
+            50% { box-shadow: 0 0 15px rgba(33, 150, 243, 0.8); }
+        }
+
+        .code-line {
+            display: block;
+            padding: 0;
+            border-radius: 3px;
+            transition: all 0.3s ease;
+        }
+
+        .code-line.current {
+            background: linear-gradient(90deg, #4a90e2 0%, #357abd 100%);
+            padding-left: 7px;
+            padding-top: 1px;
+            padding-bottom: 1px;
+            box-shadow: 0 0 8px rgba(74, 144, 226, 0.4);
+        }
+
+        .code-line.error {
+            background: linear-gradient(90deg, #e74c3c 0%, #c0392b 100%);
+            padding-left: 7px;
+            padding-top: 1px;
+            padding-bottom: 1px;
+            box-shadow: 0 0 8px rgba(231, 76, 60, 0.4);
+        }
+
+        .code-line.correct {
+            background: linear-gradient(90deg, #27ae60 0%, #219a52 100%);
+            padding-left: 7px;
+            padding-top: 1px;
+            padding-bottom: 1px;
+            box-shadow: 0 0 8px rgba(39, 174, 96, 0.4);
+        }
+
+        .code-line.function {
+            background: linear-gradient(90deg, #9b59b6 0%, #8e44ad 100%);
+            padding-left: 7px;
+            padding-top: 1px;
+            padding-bottom: 1px;
+            box-shadow: 0 0 8px rgba(155, 89, 182, 0.4);
+        }
+
+        .memory-content {
+            padding: 15px;
+            height: 103px;
+            overflow-y: auto;
+        }
+
+        .memory-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+        }
+
+        .memory-table th {
+            background: linear-gradient(90deg, #9b59b6 0%, #8e44ad 100%);
+            padding: 6px;
+            text-align: left;
+            border: 1px solid #bb70d9;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .memory-table td {
+            padding: 4px 6px;
+            border: 1px solid #666;
+            transition: all 0.3s ease;
+            background: #353535;
+            font-size: 10px;
+        }
+
+        .memory-row.highlight {
+            background: linear-gradient(90deg, #4a90e2 0%, #357abd 100%) !important;
+            box-shadow: 0 0 10px rgba(74, 144, 226, 0.5);
+        }
+
+        .memory-row.error-highlight {
+            background: linear-gradient(90deg, #e74c3c 0%, #c0392b 100%) !important;
+            box-shadow: 0 0 10px rgba(231, 76, 60, 0.5);
+        }
+
+        .variable-name {
+            font-weight: bold;
+            color: #00d4ff;
+        }
+
+        .status-text {
+            color: #f39c12;
+            font-family: monospace;
+            font-weight: bold;
+        }
+
+        .content {
+            color: #e67e22;
+            font-weight: bold;
+        }
+
+        .content.good {
+            color: #51cf66;
+        }
+
+        .content.format {
+            color: #74c0fc;
+        }
+
+        .content.closed {
+            color: #95a5a6;
+        }
+
+        .console-content {
+            padding: 15px;
+            height: 110px;
+            overflow-y: auto;
+            font-size: 11px;
+            background: #0c0c0c;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+        }
+
+        .error-text {
+            color: #ff6b6b;
+            font-weight: bold;
+        }
+
+        .success-text {
+            color: #51cf66;
+            font-weight: bold;
+        }
+
+        .controls {
+            grid-column: 1 / -1;
+            text-align: center;
+            margin: 0px 0;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            margin: 0 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            background: #555;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .status {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 15px;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            border-radius: 8px;
+            margin-top: 0px;
+            font-weight: bold;
+            border: 2px solid #3498db;
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
+        }
+
+        .format-highlight {
+            background: linear-gradient(90deg, #3498db 0%, #2980b9 100%);
+            padding: 2px 4px;
+            border-radius: 3px;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="page-title">File Formatting & Stream Functions</div>
+        <div class="grid-container">
+            <div class="left-column">
+                <div class="code-window">
+                    <div class="window-header">Main Function - C++ Code</div>
+                    <div class="code-content" id="code-display">
+<span class="code-line" data-line="1">#include &lt;iostream&gt;</span>
+<span class="code-line" data-line="2">#include &lt;fstream&gt;</span>
+<span class="code-line" data-line="3">#include &lt;iomanip&gt;</span>
+<span class="code-line" data-line="4">#include &lt;string&gt;</span>
+<span class="code-line" data-line="5">using namespace std;</span>
+<span class="code-line" data-line="6"></span>
+<span class="code-line" data-line="7">// Function prototypes</span>
+<span class="code-line" data-line="8">void writeStudentData(ofstream&amp; file, const string&amp; name, int id, double gpa);</span>
+<span class="code-line" data-line="9">void writeFormattedReport(ofstream&amp; file);</span>
+<span class="code-line" data-line="10">void displayFileContents(ifstream&amp; file);</span>
+<span class="code-line" data-line="11"></span>
+<span class="code-line" data-line="12">int main() {</span>
+<span class="code-line" data-line="13">    // Create output file for student data</span>
+<span class="code-line" data-line="14">    ofstream studentFile("students.txt");</span>
+<span class="code-line" data-line="15">    </span>
+<span class="code-line" data-line="16">    if (!studentFile) {</span>
+<span class="code-line" data-line="17">        cout &lt;&lt; "Error creating file!" &lt;&lt; endl;</span>
+<span class="code-line" data-line="18">        return 1;</span>
+<span class="code-line" data-line="19">    }</span>
+<span class="code-line" data-line="20">    </span>
+<span class="code-line" data-line="21">    // Write student data using function</span>
+<span class="code-line" data-line="22">    cout &lt;&lt; "Writing student data..." &lt;&lt; endl;</span>
+<span class="code-line" data-line="23">    writeStudentData(studentFile, "Alice Johnson", 12345, 3.85);</span>
+<span class="code-line" data-line="24">    writeStudentData(studentFile, "Bob Smith", 54321, 3.92);</span>
+<span class="code-line" data-line="25">    writeStudentData(studentFile, "Carol Davis", 98765, 3.67);</span>
+<span class="code-line" data-line="26">    </span>
+<span class="code-line" data-line="27">    studentFile.close();</span>
+<span class="code-line" data-line="28">    </span>
+<span class="code-line" data-line="29">    // Create formatted report file</span>
+<span class="code-line" data-line="30">    ofstream reportFile("report.txt");</span>
+<span class="code-line" data-line="31">    cout &lt;&lt; "Creating formatted report..." &lt;&lt; endl;</span>
+<span class="code-line" data-line="32">    writeFormattedReport(reportFile);</span>
+<span class="code-line" data-line="33">    reportFile.close();</span>
+<span class="code-line" data-line="34">    </span>
+<span class="code-line" data-line="35">    // Read and display the files</span>
+<span class="code-line" data-line="36">    ifstream readStudents("students.txt");</span>
+<span class="code-line" data-line="37">    cout &lt;&lt; "Reading student file:" &lt;&lt; endl;</span>
+<span class="code-line" data-line="38">    displayFileContents(readStudents);</span>
+<span class="code-line" data-line="39">    readStudents.close();</span>
+<span class="code-line" data-line="40">    </span>
+<span class="code-line" data-line="41">    return 0;</span>
+<span class="code-line" data-line="42">}</span>
+                    </div>
+                </div>
+
+                <div class="function-window">
+                    <div class="window-header">Function Definitions</div>
+                    <div class="function-content" id="function-display">
+<span class="code-line" data-line="f1">void writeStudentData(ofstream&amp; file, const string&amp; name, int id, double gpa) {</span>
+<span class="code-line" data-line="f2">    file &lt;&lt; "Name: " &lt;&lt; name &lt;&lt; endl;</span>
+<span class="code-line" data-line="f3">    file &lt;&lt; "ID: " &lt;&lt; id &lt;&lt; endl;</span>
+<span class="code-line" data-line="f4">    file &lt;&lt; "GPA: " &lt;&lt; fixed &lt;&lt; setprecision(2) &lt;&lt; gpa &lt;&lt; endl;</span>
+<span class="code-line" data-line="f5">    file &lt;&lt; "------------------------" &lt;&lt; endl;</span>
+<span class="code-line" data-line="f6">}</span>
+<span class="code-line" data-line="f7"></span>
+<span class="code-line" data-line="f8">void writeFormattedReport(ofstream&amp; file) {</span>
+<span class="code-line" data-line="f9">    file &lt;&lt; setw(15) &lt;&lt; left &lt;&lt; "Product" &lt;&lt; setw(10) &lt;&lt; "Price" &lt;&lt; setw(8) &lt;&lt; "Stock" &lt;&lt; endl;</span>
+<span class="code-line" data-line="f10">    file &lt;&lt; string(35, '-') &lt;&lt; endl;</span>
+<span class="code-line" data-line="f11">    file &lt;&lt; setw(15) &lt;&lt; left &lt;&lt; "Laptop" &lt;&lt; "$" &lt;&lt; setw(8) &lt;&lt; right &lt;&lt; fixed &lt;&lt; setprecision(2) &lt;&lt; 999.99 &lt;&lt; setw(8) &lt;&lt; 25 &lt;&lt; endl;</span>
+<span class="code-line" data-line="f12">    file &lt;&lt; setw(15) &lt;&lt; left &lt;&lt; "Mouse" &lt;&lt; "$" &lt;&lt; setw(8) &lt;&lt; right &lt;&lt; 29.99 &lt;&lt; setw(8) &lt;&lt; 150 &lt;&lt; endl;</span>
+<span class="code-line" data-line="f13">    file &lt;&lt; setw(15) &lt;&lt; left &lt;&lt; "Keyboard" &lt;&lt; "$" &lt;&lt; setw(8) &lt;&lt; right &lt;&lt; 79.50 &lt;&lt; setw(8) &lt;&lt; 75 &lt;&lt; endl;</span>
+<span class="code-line" data-line="f14">}</span>
+<span class="code-line" data-line="f15"></span>
+<span class="code-line" data-line="f16">void displayFileContents(ifstream&amp; file) {</span>
+<span class="code-line" data-line="f17">    string line;</span>
+<span class="code-line" data-line="f18">    while (getline(file, line)) {</span>
+<span class="code-line" data-line="f19">        cout &lt;&lt; line &lt;&lt; endl;</span>
+<span class="code-line" data-line="f20">    }</span>
+<span class="code-line" data-line="f21">}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="right-column">
+                <div class="file-window">
+                    <div class="window-header">File: students.txt</div>
+                    <div class="file-content" id="file1-display">
+                        <div class="file-empty">File does not exist</div>
+                    </div>
+                </div>
+
+                <div class="file-window">
+                    <div class="window-header">File: report.txt</div>
+                    <div class="file-content" id="file2-display">
+                        <div class="file-empty">File does not exist</div>
+                    </div>
+                </div>
+
+                <div class="memory-window">
+                    <div class="window-header">Stream Parameters</div>
+                    <div class="memory-content">
+                        <table class="memory-table">
+                            <thead>
+                                <tr>
+                                    <th>Parameter</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="memory-row" data-var="studentFile" style="display: none;">
+                                    <td class="variable-name">studentFile</td>
+                                    <td class="status-text">ofstream&</td>
+                                    <td class="content">passed by ref</td>
+                                </tr>
+                                <tr class="memory-row" data-var="reportFile" style="display: none;">
+                                    <td class="variable-name">reportFile</td>
+                                    <td class="status-text">ofstream&</td>
+                                    <td class="content">passed by ref</td>
+                                </tr>
+                                <tr class="memory-row" data-var="readStudents" style="display: none;">
+                                    <td class="variable-name">readStudents</td>
+                                    <td class="status-text">ifstream&</td>
+                                    <td class="content">passed by ref</td>
+                                </tr>
+                                <tr class="memory-row" data-var="formatting" style="display: none;">
+                                    <td class="variable-name">formatting</td>
+                                    <td class="status-text">manipulators</td>
+                                    <td class="content format">active</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="console-window">
+                    <div class="window-header">Console Output</div>
+                    <div class="console-content" id="console-output">Ready to demonstrate file formatting and stream functions...</div>
+                </div>
+            </div>
+
+            <div class="status" id="status">
+                Click "Run Demo" to see the tutorial, or "Next Step" for a single step.
+            </div>
+
+            <div class="controls">
+                <button class="btn" id="runBtn" onclick="runDemo()">Run Demo</button>
+                <button class="btn" id="stepBtn" onclick="nextStep()">Next Step</button>
+                <button class="btn" id="resetBtn" onclick="resetDemo()">Reset</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 0;
+        let isRunning = false;
+        let autoMode = false;
+
+        const steps = [
+            {
+                line: 14,
+                explanation: "Creating ofstream 'studentFile' - will be passed to functions by reference",
+                console: "",
+                memory: {},
+                showVar: "studentFile"
+            },
+            {
+                line: 16,
+                explanation: "Checking if file opened successfully - good practice for error handling",
+                console: "",
+                memory: {},
+                highlight: "studentFile"
+            },
+            {
+                line: 22,
+                explanation: "About to call function with file stream as parameter",
+                console: "Writing student data...",
+                memory: {}
+            },
+            {
+                line: 23,
+                functionLine: "f1",
+                explanation: "Calling writeStudentData() - passing ofstream by reference with data",
+                console: "Writing student data...",
+                memory: {
+                    "studentFile": { content: "passed by ref", class: "good" }
+                },
+                highlight: "studentFile",
+                showFunction: true
+            },
+            {
+                functionLine: "f2",
+                explanation: "Inside function: Writing student name using passed file stream",
+                console: "Writing student data...",
+                memory: {},
+                fileContent: "Name: Alice Johnson\n",
+                fileAnimation: "writing",
+                file: 1,
+                showFunction: true
+            },
+            {
+                functionLine: "f3",
+                explanation: "Writing student ID to the file",
+                console: "Writing student data...",
+                memory: {},
+                fileContent: "Name: Alice Johnson\nID: 12345\n",
+                fileAnimation: "writing",
+                file: 1,
+                showFunction: true
+            },
+            {
+                functionLine: "f4",
+                explanation: "Writing GPA with 'fixed' and 'setprecision(2)' for 2 decimal places",
+                console: "Writing student data...",
+                memory: {
+                    "formatting": { content: "setprecision(2)", class: "format" }
+                },
+                showVar: "formatting",
+                fileContent: "Name: Alice Johnson\nID: 12345\nGPA: 3.85\n",
+                fileAnimation: "writing",
+                file: 1,
+                showFunction: true
+            },
+            {
+                functionLine: "f5",
+                explanation: "Adding separator line for better readability",
+                console: "Writing student data...",
+                memory: {},
+                fileContent: "Name: Alice Johnson\nID: 12345\nGPA: 3.85\n------------------------\n",
+                fileAnimation: "writing",
+                file: 1,
+                showFunction: true
+            },
+            {
+                line: 24,
+                explanation: "Function completed - calling again with second student data",
+                console: "Writing student data...",
+                memory: {},
+                showFunction: false
+            },
+            {
+                functionLine: "f1",
+                explanation: "Second call to writeStudentData() - same function, different data",
+                console: "Writing student data...",
+                memory: {},
+                showFunction: true
+            },
+            {
+                functionLine: "f2",
+                explanation: "Writing second student's name",
+                console: "Writing student data...",
+                memory: {},
+                fileContent: "Name: Alice Johnson\nID: 12345\nGPA: 3.85\n------------------------\nName: Bob Smith\n",
+                fileAnimation: "writing",
+                file: 1,
+                showFunction: true
+            },
+            {
+                functionLine: "f4",
+                explanation: "Writing GPA with same formatting - formatting persists in stream",
+                console: "Writing student data...",
+                memory: {},
+                fileContent: "Name: Alice Johnson\nID: 12345\nGPA: 3.85\n------------------------\nName: Bob Smith\nID: 54321\nGPA: 3.92\n------------------------\n",
+                fileAnimation: "writing",
+                file: 1,
+                showFunction: true
+            },
+            {
+                line: 25,
+                explanation: "Third call to writeStudentData() with third student",
+                console: "Writing student data...",
+                memory: {},
+                fileContent: "Name: Alice Johnson\nID: 12345\nGPA: 3.85\n------------------------\nName: Bob Smith\nID: 54321\nGPA: 3.92\n------------------------\nName: Carol Davis\nID: 98765\nGPA: 3.67\n------------------------\n",
+                fileAnimation: "writing",
+                file: 1,
+                showFunction: false
+            },
+            {
+                line: 27,
+                explanation: "Closing the student file - changes are saved to disk",
+                console: "Writing student data...",
+                memory: {},
+                showFunction: false
+            },
+            {
+                line: 30,
+                explanation: "Creating second file for formatted report demonstration",
+                console: "Writing student data...",
+                memory: {},
+                showVar: "reportFile"
+            },
+            {
+                line: 31,
+                explanation: "About to create a formatted report with advanced formatting",
+                console: "Writing student data...\nCreating formatted report...",
+                memory: {
+                    "reportFile": { content: "passed by ref", class: "good" }
+                },
+                highlight: "reportFile"
+            },
+            {
+                line: 32,
+                functionLine: "f8",
+                explanation: "Calling writeFormattedReport() - demonstrates advanced output formatting",
+                console: "Writing student data...\nCreating formatted report...",
+                memory: {},
+                showFunction: true
+            },
+            {
+                functionLine: "f9",
+                explanation: "Creating table header with setw() for column width and alignment",
+                console: "Writing student data...\nCreating formatted report...",
+                memory: {
+                    "formatting": { content: "setw() + left", class: "format" }
+                },
+                fileContent: "Product        Price     Stock   \n",
+                fileAnimation: "writing",
+                file: 2,
+                showFunction: true
+            },
+            {
+                functionLine: "f10",
+                explanation: "Creating separator line using string constructor - string(35, '-')",
+                console: "Writing student data...\nCreating formatted report...",
+                memory: {},
+                fileContent: "Product        Price     Stock   \n-----------------------------------\n",
+                fileAnimation: "writing",
+                file: 2,
+                showFunction: true
+            },
+            {
+                functionLine: "f11",
+                explanation: "First data row: mixing left/right alignment with currency format",
+                console: "Writing student data...\nCreating formatted report...",
+                memory: {
+                    "formatting": { content: "left+right+fixed", class: "format" }
+                },
+                fileContent: "Product        Price     Stock   \n-----------------------------------\nLaptop         $  999.99       25\n",
+                fileAnimation: "writing",
+                file: 2,
+                showFunction: true
+            },
+            {
+                functionLine: "f12",
+                explanation: "Second data row with same formatting applied",
+                console: "Writing student data...\nCreating formatted report...",
+                memory: {},
+                fileContent: "Product        Price     Stock   \n-----------------------------------\nLaptop         $  999.99       25\nMouse          $   29.99      150\n",
+                fileAnimation: "writing",
+                file: 2,
+                showFunction: true
+            },
+            {
+                functionLine: "f13",
+                explanation: "Third data row completing the formatted table",
+                console: "Writing student data...\nCreating formatted report...",
+                memory: {},
+                fileContent: "Product        Price     Stock   \n-----------------------------------\nLaptop         $  999.99       25\nMouse          $   29.99      150\nKeyboard       $   79.50       75\n",
+                fileAnimation: "writing",
+                file: 2,
+                showFunction: true
+            },
+            {
+                line: 33,
+                explanation: "Closing the report file - formatted data is now saved",
+                console: "Writing student data...\nCreating formatted report...",
+                memory: {},
+                showFunction: false
+            },
+            {
+                line: 36,
+                explanation: "Creating ifstream to read back the student file",
+                console: "Writing student data...\nCreating formatted report...",
+                memory: {},
+                showVar: "readStudents"
+            },
+            {
+                line: 37,
+                explanation: "About to read and display file contents using function",
+                console: "Writing student data...\nCreating formatted report...\nReading student file:",
+                memory: {
+                    "readStudents": { content: "passed by ref", class: "good" }
+                },
+                highlight: "readStudents"
+            },
+            {
+                line: 38,
+                functionLine: "f16",
+                explanation: "Calling displayFileContents() - passing ifstream by reference",
+                console: "Writing student data...\nCreating formatted report...\nReading student file:",
+                memory: {},
+                showFunction: true
+            },
+            {
+                functionLine: "f18",
+                explanation: "Reading file line by line using getline() with passed stream",
+                console: "Writing student data...\nCreating formatted report...\nReading student file:",
+                memory: {},
+                fileAnimation: "reading",
+                file: 1,
+                showFunction: true
+            },
+            {
+                functionLine: "f19",
+                explanation: "Displaying file contents to console - all student data shown",
+                console: "Writing student data...\nCreating formatted report...\nReading student file:\nName: Alice Johnson\nID: 12345\nGPA: 3.85\n------------------------\nName: Bob Smith\nID: 54321\nGPA: 3.92\n------------------------\nName: Carol Davis\nID: 98765\nGPA: 3.67\n------------------------",
+                memory: {},
+                showFunction: true
+            },
+            {
+                line: 39,
+                explanation: "Closing the input file - demonstration complete",
+                console: "Writing student data...\nCreating formatted report...\nReading student file:\nName: Alice Johnson\nID: 12345\nGPA: 3.85\n------------------------\nName: Bob Smith\nID: 54321\nGPA: 3.92\n------------------------\nName: Carol Davis\nID: 98765\nGPA: 3.67\n------------------------",
+                memory: {},
+                showFunction: false
+            }
+        ];
+
+        function updateDisplay(step) {
+            // Clear previous highlights
+            document.querySelectorAll('.code-line').forEach(line => {
+                line.classList.remove('current', 'function');
+            });
+            document.querySelectorAll('.memory-row').forEach(row => {
+                row.classList.remove('highlight');
+            });
+            document.getElementById('file1-display').classList.remove('file-writing', 'file-reading');
+            document.getElementById('file2-display').classList.remove('file-writing', 'file-reading');
+
+            const stepData = steps[step];
+            
+            // Highlight current line in main code
+            if (stepData.line) {
+                const currentLine = document.querySelector(`[data-line="${stepData.line}"]`);
+                if (currentLine) {
+                    currentLine.classList.add('current');
+                    
+                    // Scroll to highlighted line
+                    const codeContent = document.getElementById('code-display');
+                    const lineRect = currentLine.getBoundingClientRect();
+                    const containerRect = codeContent.getBoundingClientRect();
+                    
+                    if (lineRect.top < containerRect.top || lineRect.bottom > containerRect.bottom) {
+                        currentLine.scrollIntoView({ 
+                            behavior: 'smooth', 
+                            block: 'center',
+                            inline: 'nearest'
+                        });
+                    }
+                }
+            }
+
+            // Highlight function line
+            if (stepData.functionLine) {
+                const functionLine = document.querySelector(`[data-line="${stepData.functionLine}"]`);
+                if (functionLine) {
+                    functionLine.classList.add('function');
+                    
+                    // Scroll function into view
+                    const funcContent = document.getElementById('function-display');
+                    const lineRect = functionLine.getBoundingClientRect();
+                    const containerRect = funcContent.getBoundingClientRect();
+                    
+                    if (lineRect.top < containerRect.top || lineRect.bottom > containerRect.bottom) {
+                        functionLine.scrollIntoView({ 
+                            behavior: 'smooth', 
+                            block: 'center',
+                            inline: 'nearest'
+                        });
+                    }
+                }
+            }
+
+            // Show/hide function panel
+            const functionWindow = document.querySelector('.function-window');
+            if (stepData.showFunction) {
+                functionWindow.style.opacity = '1';
+            } else {
+                functionWindow.style.opacity = '0.7';
+            }
+
+            // Show variables
+            if (stepData.showVar) {
+                const varRow = document.querySelector(`[data-var="${stepData.showVar}"]`);
+                if (varRow) varRow.style.display = 'table-row';
+            }
+
+            // Update memory
+            if (stepData.memory) {
+                Object.keys(stepData.memory).forEach(varName => {
+                    const row = document.querySelector(`[data-var="${varName}"]`);
+                    if (row) {
+                        const contentCell = row.querySelector('.content');
+                        const memData = stepData.memory[varName];
+                        contentCell.textContent = memData.content;
+                        contentCell.className = `content ${memData.class}`;
+                    }
+                });
+            }
+
+            // Update file content
+            if (stepData.fileContent !== undefined) {
+                const fileId = stepData.file === 2 ? 'file2-display' : 'file1-display';
+                const fileDisplay = document.getElementById(fileId);
+                if (stepData.fileContent === "") {
+                    fileDisplay.innerHTML = '<div class="file-empty">File does not exist</div>';
+                } else {
+                    fileDisplay.textContent = stepData.fileContent;
+                }
+            }
+
+            // File animation
+            if (stepData.fileAnimation) {
+                const fileId = stepData.file === 2 ? 'file2-display' : 'file1-display';
+                document.getElementById(fileId).classList.add(`file-${stepData.fileAnimation}`);
+            }
+
+            // Highlight memory row
+            if (stepData.highlight) {
+                const row = document.querySelector(`[data-var="${stepData.highlight}"]`);
+                if (row) {
+                    row.classList.add('highlight');
+                }
+            }
+
+            // Update console
+            if (stepData.console !== undefined) {
+                document.getElementById('console-output').innerHTML = stepData.console.replace(/\n/g, '<br>');
+            }
+
+            // Update status
+            document.getElementById('status').textContent = stepData.explanation;
+        }
+
+        function nextStep() {
+            if (currentStep < steps.length) {
+                updateDisplay(currentStep);
+                currentStep++;
+                
+                if (currentStep >= steps.length) {
+                    document.getElementById('stepBtn').disabled = true;
+                    document.getElementById('status').textContent = "Tutorial complete!";
+                }
+            }
+        }
+
+        function runDemo() {
+            if (isRunning) return;
+            
+            isRunning = true;
+            autoMode = true;
+            document.getElementById('runBtn').disabled = true;
+            document.getElementById('stepBtn').disabled = true;
+            
+            currentStep = 0;
+            
+            function autoStep() {
+                if (currentStep < steps.length) {
+                    nextStep();
+                    setTimeout(autoStep, 2200);
+                } else {
+                    isRunning = false;
+                    document.getElementById('resetBtn').disabled = false;
+                }
+            }
+            
+            autoStep();
+        }
+
+        function resetDemo() {
+            currentStep = 0;
+            isRunning = false;
+            autoMode = false;
+            
+            // Reset buttons
+            document.getElementById('runBtn').disabled = false;
+            document.getElementById('stepBtn').disabled = false;
+            document.getElementById('resetBtn').disabled = false;
+            
+            // Clear highlights
+            document.querySelectorAll('.code-line').forEach(line => {
+                line.classList.remove('current', 'function');
+            });
+            document.querySelectorAll('.memory-row').forEach(row => {
+                row.classList.remove('highlight');
+                row.style.display = 'none';
+            });
+            
+            // Reset file displays
+            document.getElementById('file1-display').innerHTML = '<div class="file-empty">File does not exist</div>';
+            document.getElementById('file2-display').innerHTML = '<div class="file-empty">File does not exist</div>';
+            document.getElementById('file1-display').classList.remove('file-writing', 'file-reading');
+            document.getElementById('file2-display').classList.remove('file-writing', 'file-reading');
+            
+            // Reset function panel opacity
+            document.querySelector('.function-window').style.opacity = '0.7';
+            
+            // Reset console and status
+            document.getElementById('console-output').innerHTML = 'Ready to demonstrate file formatting and stream functions...';
+            document.getElementById('status').textContent = 'Click "Run Demo" to see the tutorial, or "Next Step" for a single step.';
+        }
+
+        // Initialize
+        resetDemo();
+    </script>
+</body>
+</html>
