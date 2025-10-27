@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classes and Objects - C++ OOP Animation</title>
+    <style>
+        body {
+            font-family: 'Consolas', 'Monaco', monospace;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: #fff;
+            min-width: 800px;
+            overflow-x: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 800px;
+            margin: 0 auto;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #00d4ff;
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: 450px 330px;
+            gap: 20px;
+            min-width: 800px;
+            max-width: 800px;
+        }
+
+        .left-column {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .right-column {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .code-window, .objects-window, .memory-window, .console-window {
+            border: 2px solid #4a90e2;
+            border-radius: 12px;
+            background: #2a2a2a;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(74, 144, 226, 0.2);
+        }
+
+        .window-header {
+            background: linear-gradient(90deg, #4a90e2 0%, #5ba0f2 100%);
+            padding: 8px 15px;
+            font-weight: bold;
+            font-size: 14px;
+            color: #ffffff;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .code-content {
+            padding: 15px;
+            overflow-y: auto;
+            font-size: 12px;
+            line-height: 1.5;
+            background: #1a1a1a;
+        }
+
+        .class-code {
+            height: 280px;
+        }
+
+        .main-code {
+            height: 280px;
+        }
+
+        .code-line {
+            white-space: pre;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .code-line.highlight {
+            background: linear-gradient(90deg, #f39c12 0%, #e67e22 100%);
+            padding-left: 7px;
+            padding-top: 1px;
+            padding-bottom: 1px;
+            box-shadow: 0 0 10px rgba(243, 156, 18, 0.5);
+            animation: pulse 0.5s ease-in-out;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
+        .keyword {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .class-name {
+            color: #3498db;
+            font-weight: bold;
+        }
+
+        .function {
+            color: #f39c12;
+        }
+
+        .string {
+            color: #2ecc71;
+        }
+
+        .number {
+            color: #9b59b6;
+        }
+
+        .comment {
+            color: #7f8c8d;
+            font-style: italic;
+        }
+
+        .access-modifier {
+            color: #e67e22;
+            font-weight: bold;
+        }
+
+        .objects-content {
+            padding: 15px;
+            height: 160px;
+            overflow-y: auto;
+            background: #1a1a1a;
+        }
+
+        .object-instance {
+            background: #2c3e50;
+            border: 2px solid #34495e;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .object-instance.active {
+            border-color: #3498db;
+            box-shadow: 0 0 15px rgba(52, 152, 219, 0.5);
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        }
+
+        .object-header {
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 5px;
+        }
+
+        .member-list {
+            margin-left: 15px;
+        }
+
+        .member-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 3px 0;
+            padding: 2px 5px;
+            transition: all 0.3s ease;
+        }
+
+        .member-item.private {
+            background: rgba(231, 76, 60, 0.1);
+            border-left: 3px solid #e74c3c;
+        }
+
+        .member-item.highlight {
+            background: rgba(243, 156, 18, 0.3);
+            animation: glow 0.5s ease-in-out;
+        }
+
+        @keyframes glow {
+            0% { box-shadow: 0 0 0 rgba(243, 156, 18, 0); }
+            50% { box-shadow: 0 0 20px rgba(243, 156, 18, 0.5); }
+            100% { box-shadow: 0 0 0 rgba(243, 156, 18, 0); }
+        }
+
+        .member-name {
+            color: #ecf0f1;
+        }
+
+        .member-value {
+            color: #9b59b6;
+            font-weight: bold;
+        }
+
+        .private-indicator {
+            color: #e74c3c;
+            font-size: 10px;
+            margin-left: 5px;
+        }
+
+        .memory-content {
+            padding: 15px;
+            height: 120px;
+            overflow-y: auto;
+            background: #1a1a1a;
+        }
+
+        .memory-block {
+            background: #2c3e50;
+            border: 1px solid #34495e;
+            border-radius: 5px;
+            padding: 8px;
+            margin-bottom: 8px;
+            font-size: 11px;
+        }
+
+        .memory-address {
+            color: #95a5a6;
+            font-size: 10px;
+        }
+
+        .console-content {
+            padding: 15px;
+            height: 140px;
+            overflow-y: auto;
+            font-size: 11px;
+            background: #0c0c0c;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+        }
+
+        .console-line {
+            margin: 2px 0;
+            transition: all 0.3s ease;
+        }
+
+        .console-line.new {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .controls {
+            grid-column: 1 / -1;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            margin: 0 10px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #ecf0f1;
+            text-align: center;
+            min-height: 20px;
+        }
+
+        .status-message {
+            display: inline-block;
+            padding: 8px 15px;
+            background: rgba(52, 152, 219, 0.2);
+            border: 1px solid #3498db;
+            border-radius: 5px;
+            animation: fadeIn 0.5s ease-in;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="page-title">OOP Tutorial: Classes and Objects</div>
+        
+        <div class="grid-container">
+            <div class="left-column">
+                <div class="code-window">
+                    <div class="window-header">💼 BankAccount.h (Class Definition)</div>
+                    <div class="code-content class-code" id="classCode">
+                        <div class="code-line" data-line="0"><span class="keyword">class</span> <span class="class-name">BankAccount</span> {</div>
+                        <div class="code-line" data-line="1"><span class="access-modifier">private:</span>  <span class="comment">// Data members (hidden from outside)</span></div>
+                        <div class="code-line" data-line="2">    <span class="keyword">string</span> accountNumber;</div>
+                        <div class="code-line" data-line="3">    <span class="keyword">string</span> owner;</div>
+                        <div class="code-line" data-line="4">    <span class="keyword">double</span> balance;</div>
+                        <div class="code-line" data-line="5"></div>
+                        <div class="code-line" data-line="6"><span class="access-modifier">public:</span>   <span class="comment">// Public interface</span></div>
+                        <div class="code-line" data-line="7">    <span class="comment">// Constructor (inline)</span></div>
+                        <div class="code-line" data-line="8">    <span class="function">BankAccount</span>(<span class="keyword">string</span> accNum, <span class="keyword">string</span> name, <span class="keyword">double</span> initial) {</div>
+                        <div class="code-line" data-line="9">        accountNumber = accNum;</div>
+                        <div class="code-line" data-line="10">        owner = name;</div>
+                        <div class="code-line" data-line="11">        balance = initial;</div>
+                        <div class="code-line" data-line="12">    }</div>
+                        <div class="code-line" data-line="13"></div>
+                        <div class="code-line" data-line="14">    <span class="comment">// Inline member function</span></div>
+                        <div class="code-line" data-line="15">    <span class="keyword">void</span> <span class="function">deposit</span>(<span class="keyword">double</span> amount) {</div>
+                        <div class="code-line" data-line="16">        balance += amount;</div>
+                        <div class="code-line" data-line="17">    }</div>
+                        <div class="code-line" data-line="18"></div>
+                        <div class="code-line" data-line="19">    <span class="comment">// Inline getter (accessor)</span></div>
+                        <div class="code-line" data-line="20">    <span class="keyword">double</span> <span class="function">getBalance</span>() { <span class="keyword">return</span> balance; }</div>
+                        <div class="code-line" data-line="21">};</div>
+                    </div>
+                </div>
+                
+                <div class="code-window">
+                    <div class="window-header">🖥️ main.cpp</div>
+                    <div class="code-content main-code" id="mainCode">
+                        <div class="code-line" data-line="0"><span class="keyword">int</span> <span class="function">main</span>() {</div>
+                        <div class="code-line" data-line="1">    <span class="comment">// Creating instances (objects)</span></div>
+                        <div class="code-line" data-line="2">    <span class="class-name">BankAccount</span> acc1(<span class="string">"1001"</span>, <span class="string">"Alice"</span>, <span class="number">1000.0</span>);</div>
+                        <div class="code-line" data-line="3">    <span class="class-name">BankAccount</span> acc2(<span class="string">"1002"</span>, <span class="string">"Bob"</span>, <span class="number">500.0</span>);</div>
+                        <div class="code-line" data-line="4"></div>
+                        <div class="code-line" data-line="5">    <span class="comment">// Using public member functions</span></div>
+                        <div class="code-line" data-line="6">    cout &lt;&lt; <span class="string">"Initial balance (acc1): $"</span> </div>
+                        <div class="code-line" data-line="7">         &lt;&lt; acc1.<span class="function">getBalance</span>() &lt;&lt; endl;</div>
+                        <div class="code-line" data-line="8"></div>
+                        <div class="code-line" data-line="9">    acc1.<span class="function">deposit</span>(<span class="number">250.0</span>);</div>
+                        <div class="code-line" data-line="10">    cout &lt;&lt; <span class="string">"After deposit: $"</span> </div>
+                        <div class="code-line" data-line="11">         &lt;&lt; acc1.<span class="function">getBalance</span>() &lt;&lt; endl;</div>
+                        <div class="code-line" data-line="12"></div>
+                        <div class="code-line" data-line="13">    <span class="comment">// acc1.balance = 5000;  // ERROR! Private member</span></div>
+                        <div class="code-line" data-line="14"></div>
+                        <div class="code-line" data-line="15">    cout &lt;&lt; <span class="string">"Bob's balance: $"</span> </div>
+                        <div class="code-line" data-line="16">         &lt;&lt; acc2.<span class="function">getBalance</span>() &lt;&lt; endl;</div>
+                        <div class="code-line" data-line="17"></div>
+                        <div class="code-line" data-line="18">    <span class="keyword">return</span> <span class="number">0</span>;</div>
+                        <div class="code-line" data-line="19">}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="right-column">
+                <div class="objects-window">
+                    <div class="window-header">🔷 Object Instances</div>
+                    <div class="objects-content" id="objectsDisplay">
+                        <div class="object-placeholder" style="color: #7f8c8d; text-align: center; margin-top: 50px;">
+                            No objects created yet
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="memory-window">
+                    <div class="window-header">💾 Memory Layout</div>
+                    <div class="memory-content" id="memoryDisplay">
+                        <div style="color: #7f8c8d; text-align: center; margin-top: 30px;">
+                            Memory allocation will appear here
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="console-window">
+                    <div class="window-header">📺 Console Output</div>
+                    <div class="console-content" id="consoleOutput">
+                        <div style="color: #7f8c8d;">Ready to run...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button class="btn" id="runBtn" onclick="runDemo()">Run Demo</button>
+            <button class="btn" id="stepBtn" onclick="nextStep()">Next Step</button>
+            <button class="btn" id="resetBtn" onclick="resetDemo()">Reset</button>
+        </div>
+        
+        <div class="status" id="statusMessage"></div>
+    </div>
+
+    <script>
+        let currentStep = 0;
+        let isRunning = false;
+        let demoInterval = null;
+        
+        const steps = [
+            { 
+                type: 'highlight', 
+                window: 'class', 
+                lines: [0, 1, 2, 3, 4, 6], 
+                message: 'Class definition with private data members',
+                duration: 2000 
+            },
+            { 
+                type: 'highlight', 
+                window: 'class', 
+                lines: [8, 9, 10, 11, 12], 
+                message: 'Constructor - initializes object when created',
+                duration: 2000 
+            },
+            { 
+                type: 'highlight', 
+                window: 'main', 
+                lines: [2], 
+                message: 'Creating first object (instance) acc1',
+                action: 'createObject1',
+                duration: 2000 
+            },
+            { 
+                type: 'highlight', 
+                window: 'main', 
+                lines: [3], 
+                message: 'Creating second object acc2',
+                action: 'createObject2',
+                duration: 2000 
+            },
+            { 
+                type: 'highlight', 
+                window: 'main', 
+                lines: [6, 7], 
+                message: 'Calling getBalance() - accessing private member through public function',
+                action: 'getBalance1',
+                duration: 2000 
+            },
+            { 
+                type: 'highlight', 
+                window: 'main', 
+                lines: [9], 
+                message: 'Calling deposit() - modifying private member through public function',
+                action: 'deposit1',
+                duration: 2000 
+            },
+            { 
+                type: 'highlight', 
+                window: 'class', 
+                lines: [15, 16, 17], 
+                message: 'Inline deposit() function executes',
+                action: 'depositExecute',
+                duration: 2000 
+            },
+            { 
+                type: 'highlight', 
+                window: 'main', 
+                lines: [10, 11], 
+                message: 'Display updated balance',
+                action: 'getBalance2',
+                duration: 2000 
+            },
+            { 
+                type: 'highlight', 
+                window: 'main', 
+                lines: [13], 
+                message: 'Note: Direct access to private members would cause compilation error!',
+                duration: 2000 
+            },
+            { 
+                type: 'highlight', 
+                window: 'main', 
+                lines: [15, 16], 
+                message: 'Accessing acc2 balance through public interface',
+                action: 'getBalance3',
+                duration: 2000 
+            }
+        ];
+
+        function highlightLines(window, lines) {
+            const codeElement = window === 'class' ? 
+                document.getElementById('classCode') : 
+                document.getElementById('mainCode');
+            
+            // Clear previous highlights
+            codeElement.querySelectorAll('.code-line').forEach(line => {
+                line.classList.remove('highlight');
+            });
+            
+            // Add new highlights
+            lines.forEach(lineNum => {
+                const line = codeElement.querySelector(`[data-line="${lineNum}"]`);
+                if (line) {
+                    line.classList.add('highlight');
+                }
+            });
+        }
+
+        function updateObjects(action) {
+            const objectsDisplay = document.getElementById('objectsDisplay');
+            const memoryDisplay = document.getElementById('memoryDisplay');
+            
+            switch(action) {
+                case 'createObject1':
+                    objectsDisplay.innerHTML = `
+                        <div class="object-instance active" id="obj1">
+                            <div class="object-header">acc1 : BankAccount</div>
+                            <div class="member-list">
+                                <div class="member-item private">
+                                    <span class="member-name">accountNumber<span class="private-indicator">[private]</span></span>
+                                    <span class="member-value">"1001"</span>
+                                </div>
+                                <div class="member-item private">
+                                    <span class="member-name">owner<span class="private-indicator">[private]</span></span>
+                                    <span class="member-value">"Alice"</span>
+                                </div>
+                                <div class="member-item private" id="balance1">
+                                    <span class="member-name">balance<span class="private-indicator">[private]</span></span>
+                                    <span class="member-value">1000.0</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    memoryDisplay.innerHTML = `
+                        <div class="memory-block">
+                            <div class="memory-address">0x7fff5fbff710</div>
+                            <div>acc1 object (32 bytes)</div>
+                            <div style="margin-left: 10px; color: #e74c3c;">├─ Private members</div>
+                            <div style="margin-left: 10px; color: #f39c12;">└─ Public methods → Code segment</div>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'createObject2':
+                    document.querySelector('.object-instance').classList.remove('active');
+                    objectsDisplay.innerHTML += `
+                        <div class="object-instance active" id="obj2">
+                            <div class="object-header">acc2 : BankAccount</div>
+                            <div class="member-list">
+                                <div class="member-item private">
+                                    <span class="member-name">accountNumber<span class="private-indicator">[private]</span></span>
+                                    <span class="member-value">"1002"</span>
+                                </div>
+                                <div class="member-item private">
+                                    <span class="member-name">owner<span class="private-indicator">[private]</span></span>
+                                    <span class="member-value">"Bob"</span>
+                                </div>
+                                <div class="member-item private">
+                                    <span class="member-name">balance<span class="private-indicator">[private]</span></span>
+                                    <span class="member-value">500.0</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    memoryDisplay.innerHTML += `
+                        <div class="memory-block">
+                            <div class="memory-address">0x7fff5fbff6f0</div>
+                            <div>acc2 object (32 bytes)</div>
+                            <div style="margin-left: 10px; color: #e74c3c;">├─ Private members</div>
+                            <div style="margin-left: 10px; color: #f39c12;">└─ Public methods → Code segment</div>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'depositExecute':
+                    // Update balance visually
+                    document.querySelectorAll('.object-instance').forEach(obj => {
+                        obj.classList.remove('active');
+                    });
+                    document.getElementById('obj1').classList.add('active');
+                    
+                    const balanceElement = document.querySelector('#obj1 #balance1 .member-value');
+                    if (balanceElement) {
+                        document.querySelector('#obj1 #balance1').classList.add('highlight');
+                        setTimeout(() => {
+                            balanceElement.textContent = '1250.0';
+                            document.querySelector('#obj1 #balance1').classList.remove('highlight');
+                        }, 500);
+                    }
+                    break;
+                    
+                case 'getBalance3':
+                    document.querySelectorAll('.object-instance').forEach(obj => {
+                        obj.classList.remove('active');
+                    });
+                    document.getElementById('obj2').classList.add('active');
+                    break;
+            }
+        }
+
+        function updateConsole(action) {
+            const consoleOutput = document.getElementById('consoleOutput');
+            
+            switch(action) {
+                case 'getBalance1':
+                    consoleOutput.innerHTML = '<div class="console-line new">Initial balance (acc1): $1000</div>';
+                    break;
+                case 'getBalance2':
+                    consoleOutput.innerHTML += '<div class="console-line new">After deposit: $1250</div>';
+                    break;
+                case 'getBalance3':
+                    consoleOutput.innerHTML += '<div class="console-line new">Bob\'s balance: $500</div>';
+                    break;
+            }
+        }
+
+        function executeStep(step) {
+            // Update status
+            document.getElementById('statusMessage').innerHTML = 
+                `<span class="status-message">${step.message}</span>`;
+            
+            // Highlight code
+            if (step.type === 'highlight') {
+                highlightLines(step.window, step.lines);
+            }
+            
+            // Execute action if present
+            if (step.action) {
+                setTimeout(() => {
+                    if (step.action.startsWith('getBalance')) {
+                        updateConsole(step.action);
+                    }
+                    if (step.action === 'deposit1') {
+                        // Just highlight acc1
+                        document.querySelectorAll('.object-instance').forEach(obj => {
+                            obj.classList.remove('active');
+                        });
+                        document.getElementById('obj1').classList.add('active');
+                    }
+                    updateObjects(step.action);
+                }, 500);
+            }
+        }
+
+        function nextStep() {
+            if (currentStep < steps.length) {
+                executeStep(steps[currentStep]);
+                currentStep++;
+                
+                if (currentStep >= steps.length) {
+                    document.getElementById('stepBtn').disabled = true;
+                    document.getElementById('statusMessage').innerHTML = 
+                        '<span class="status-message">✅ Demo completed!</span>';
+                }
+            }
+        }
+
+        function runDemo() {
+            if (isRunning) return;
+            
+            resetDemo();
+            isRunning = true;
+            document.getElementById('runBtn').disabled = true;
+            document.getElementById('stepBtn').disabled = true;
+            
+            let stepIndex = 0;
+            
+            function runNextStep() {
+                if (stepIndex < steps.length) {
+                    executeStep(steps[stepIndex]);
+                    stepIndex++;
+                    demoInterval = setTimeout(runNextStep, steps[stepIndex - 1].duration);
+                } else {
+                    isRunning = false;
+                    document.getElementById('runBtn').disabled = false;
+                    document.getElementById('statusMessage').innerHTML = 
+                        '<span class="status-message">✅ Demo completed!</span>';
+                }
+            }
+            
+            runNextStep();
+        }
+
+        function resetDemo() {
+            // Stop any running demo
+            if (demoInterval) {
+                clearTimeout(demoInterval);
+            }
+            
+            isRunning = false;
+            currentStep = 0;
+            
+            // Clear highlights
+            document.querySelectorAll('.code-line').forEach(line => {
+                line.classList.remove('highlight');
+            });
+            
+            // Reset objects display
+            document.getElementById('objectsDisplay').innerHTML = `
+                <div class="object-placeholder" style="color: #7f8c8d; text-align: center; margin-top: 50px;">
+                    No objects created yet
+                </div>
+            `;
+            
+            // Reset memory display
+            document.getElementById('memoryDisplay').innerHTML = `
+                <div style="color: #7f8c8d; text-align: center; margin-top: 30px;">
+                    Memory allocation will appear here
+                </div>
+            `;
+            
+            // Reset console
+            document.getElementById('consoleOutput').innerHTML = 
+                '<div style="color: #7f8c8d;">Ready to run...</div>';
+            
+            // Reset status
+            document.getElementById('statusMessage').innerHTML = '';
+            
+            // Enable buttons
+            document.getElementById('runBtn').disabled = false;
+            document.getElementById('stepBtn').disabled = false;
+        }
+
+        // Initialize
+        resetDemo();
+    </script>
+</body>
+</html>
