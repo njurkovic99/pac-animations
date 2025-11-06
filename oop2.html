@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C++ Constructors, Overloading and Private Member Functions</title>
+    <style>
+        body {
+            font-family: 'Consolas', 'Monaco', monospace;
+            margin: 0;
+            padding: 10px;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding-top: 10px;
+        }
+
+        .container {
+            width: 800px;
+            min-height: 900px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            margin-top: 0;
+            font-size: 24px;
+            font-weight: bold;
+            color: #64b5f6;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: 450px 330px;
+            gap: 15px;
+        }
+
+        .left-column {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .right-column {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .code-window {
+            border: 2px solid #4a90e2;
+            border-radius: 8px;
+            background: rgba(10, 25, 47, 0.9);
+            overflow: hidden;
+        }
+
+        .code-window.class-def {
+            height: 375px;
+        }
+
+        .code-window.main-code {
+            height: 425px;
+        }
+
+        .window-header {
+            background: linear-gradient(90deg, #4a90e2 0%, #357abd 100%);
+            color: white;
+            padding: 8px 15px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .code-content {
+            padding: 15px;
+            font-size: 13px;
+            line-height: 1.4;
+            color: #f8f8f2;
+            height: calc(100% - 40px);
+            overflow-y: auto;
+            overflow-x: auto;
+            background: #0a192f;
+        }
+
+        .code-content::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .code-content::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        .code-content::-webkit-scrollbar-thumb {
+            background: rgba(74, 144, 226, 0.5);
+            border-radius: 4px;
+        }
+
+        .info-window {
+            border: 2px solid #4a90e2;
+            border-radius: 8px;
+            background: rgba(10, 25, 47, 0.9);
+            overflow: hidden;
+        }
+
+        .object-window {
+            height: 280px;
+        }
+
+        .memory-window {
+            height: 255px;
+        }
+
+        .console-window {
+            height: 250px;
+        }
+
+        .info-content {
+            padding: 15px;
+            font-size: 13px;
+            line-height: 1.4;
+            height: calc(100% - 40px);
+            overflow-y: auto;
+            color: #f8f8f2;
+        }
+
+        .console-content {
+            font-family: 'Courier New', monospace;
+            color: #0f0;
+            background: #000;
+            padding: 10px;
+            height: calc(100% - 40px);
+            overflow-y: auto;
+        }
+
+        .controls {
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        button:disabled {
+            background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .status {
+            margin-top: 10px;
+            text-align: center;
+            font-size: 14px;
+            color: #64b5f6;
+            min-height: 20px;
+        }
+
+        /* Syntax Highlighting */
+        .keyword { color: #ff79c6; }
+        .class-name { color: #8be9fd; }
+        .function { color: #f1fa8c; }
+        .string { color: #50fa7b; }
+        .comment { color: #6272a4; font-style: italic; }
+        .number { color: #bd93f9; }
+        .private { color: #ff5555; }
+
+        /* Animation Classes */
+        .highlight {
+            background: rgba(255, 255, 0, 0.2);
+            animation: pulse 1s ease-in-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% { background: rgba(255, 255, 0, 0.2); }
+            50% { background: rgba(255, 255, 0, 0.4); }
+        }
+
+        .object-box {
+            background: rgba(74, 144, 226, 0.1);
+            border: 1px solid #4a90e2;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 5px 0;
+        }
+
+        .object-box.active {
+            background: rgba(76, 175, 80, 0.2);
+            border-color: #4CAF50;
+            animation: glow 1s ease-in-out;
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 5px rgba(76, 175, 80, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(76, 175, 80, 0.8); }
+        }
+
+        .memory-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 3px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .console-line {
+            margin: 2px 0;
+        }
+
+        .private-indicator {
+            color: #ff5555;
+            font-weight: bold;
+        }
+
+        .constructor-call {
+            color: #50fa7b;
+            font-weight: bold;
+        }
+
+        pre {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>C++ Constructors, Overloading and Private Member Functions</h1>
+        <div class="grid-container">
+            <div class="left-column">
+                <div class="code-window class-def">
+                    <div class="window-header">📄 Student.h</div>
+                    <div class="code-content">
+                        <pre id="classCode"><span class="keyword">class</span> <span class="class-name">Student</span> {
+<span class="keyword">private</span>:
+    <span class="keyword">string</span> name;
+    <span class="keyword">int</span> id;
+    <span class="keyword">double</span> gpa;
+    
+    <span class="comment">// Private member function</span>
+    <span class="keyword">void</span> <span class="function">validateGPA</span>() {
+        <span class="keyword">if</span> (gpa < <span class="number">0.0</span>) gpa = <span class="number">0.0</span>;
+        <span class="keyword">if</span> (gpa > <span class="number">4.0</span>) gpa = <span class="number">4.0</span>;
+    }
+
+<span class="keyword">public</span>:
+    <span class="comment">// Default constructor</span>
+    <span class="class-name">Student</span>() {
+        name = <span class="string">"Unknown"</span>;
+        id = <span class="number">0</span>;
+        gpa = <span class="number">0.0</span>;
+        cout << <span class="string">"Default constructor called"</span> << endl;
+    }
+    
+    <span class="comment">// Parameterized constructor (overloaded)</span>
+    <span class="class-name">Student</span>(<span class="keyword">string</span> n, <span class="keyword">int</span> i) {
+        name = n;
+        id = i;
+        gpa = <span class="number">0.0</span>;
+        cout << <span class="string">"2-param constructor for "</span> << name << endl;
+    }
+    
+    <span class="comment">// Another overloaded constructor</span>
+    <span class="class-name">Student</span>(<span class="keyword">string</span> n, <span class="keyword">int</span> i, <span class="keyword">double</span> g) {
+        name = n;
+        id = i;
+        gpa = g;
+        validateGPA();  <span class="comment">// Calling private function</span>
+        cout << <span class="string">"3-param constructor for "</span> << name << endl;
+    }
+    
+    <span class="keyword">void</span> <span class="function">display</span>() {
+        cout << <span class="string">"Name: "</span> << name << <span class="string">", ID: "</span> << id 
+             << <span class="string">", GPA: "</span> << gpa << endl;
+    }
+};</pre>
+                    </div>
+                </div>
+                
+                <div class="code-window main-code">
+                    <div class="window-header">📄 main.cpp</div>
+                    <div class="code-content">
+                        <pre id="mainCode"><span class="keyword">#include</span> <span class="string">&lt;iostream&gt;</span>
+<span class="keyword">#include</span> <span class="string">"Student.h"</span>
+<span class="keyword">using namespace</span> std;
+
+<span class="keyword">int</span> <span class="function">main</span>() {
+    <span class="comment">// Using default constructor</span>
+    <span class="class-name">Student</span> s1;
+    s1.display();
+    
+    <span class="comment">// Using 2-parameter constructor</span>
+    <span class="class-name">Student</span> s2(<span class="string">"Alice"</span>, <span class="number">101</span>);
+    s2.display();
+    
+    <span class="comment">// Using 3-parameter constructor</span>
+    <span class="class-name">Student</span> s3(<span class="string">"Bob"</span>, <span class="number">102</span>, <span class="number">3.75</span>);
+    s3.display();
+    
+    <span class="comment">// Testing GPA validation (private function)</span>
+    <span class="class-name">Student</span> s4(<span class="string">"Charlie"</span>, <span class="number">103</span>, <span class="number">5.0</span>);
+    s4.display();  <span class="comment">// GPA should be capped at 4.0</span>
+    
+    <span class="keyword">return</span> <span class="number">0</span>;
+}</pre>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="right-column">
+                <div class="info-window object-window">
+                    <div class="window-header">👥 Object Instances</div>
+                    <div class="info-content" id="objectContent">
+                        <div style="text-align: center; color: #6272a4; padding: 20px;">
+                            Objects will appear here as they are created
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="info-window memory-window">
+                    <div class="window-header">💾 Memory Layout</div>
+                    <div class="info-content" id="memoryContent">
+                        <div style="text-align: center; color: #6272a4; padding: 20px;">
+                            Memory allocation will be shown here
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="info-window console-window">
+                    <div class="window-header">📺 Console Output</div>
+                    <div class="console-content" id="consoleContent"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button id="runBtn" onclick="runDemo()">Run Demo</button>
+            <button id="stepBtn" onclick="nextStep()">Next Step</button>
+            <button id="resetBtn" onclick="resetDemo()">Reset</button>
+        </div>
+        <div class="status" id="status">Ready to start</div>
+    </div>
+
+    <script>
+        let currentStep = 0;
+        let isRunning = false;
+        let demoInterval;
+        const steps = [];
+
+        function initSteps() {
+            steps.length = 0;
+            steps.push(
+                { line: 'class', highlight: [0], action: 'showConcept', 
+                  desc: 'Defining the Student class', concept: 'Class Definition' },
+                
+                { line: 'class', highlight: [1,2,3,4], action: 'showPrivate', 
+                  desc: 'Private members: only accessible within the class', concept: 'Private Members' },
+                
+                { line: 'class', highlight: [6,7,8,9,10], action: 'showPrivateFunc', 
+                  desc: 'Private member function: validateGPA() can only be called internally', 
+                  concept: 'Private Member Function' },
+                
+                { line: 'class', highlight: [13,14,15,16,17,18,19], action: 'showDefaultConstructor', 
+                  desc: 'Default constructor: called when no arguments provided', 
+                  concept: 'Default Constructor' },
+                
+                { line: 'class', highlight: [21,22,23,24,25,26,27], action: 'showParamConstructor1', 
+                  desc: 'First overloaded constructor: accepts name and ID', 
+                  concept: 'Constructor Overloading #1' },
+                
+                { line: 'class', highlight: [29,30,31,32,33,34,35,36], action: 'showParamConstructor2', 
+                  desc: 'Second overloaded constructor: accepts name, ID, and GPA', 
+                  concept: 'Constructor Overloading #2' },
+                
+                { line: 'main', highlight: [6,7], action: 'createDefault', 
+                  desc: 'Creating s1 using default constructor', concept: 'Using Default Constructor' },
+                
+                { line: 'main', highlight: [10,11], action: 'create2Param', 
+                  desc: 'Creating s2 using 2-parameter constructor', concept: 'Using 2-Param Constructor' },
+                
+                { line: 'main', highlight: [14,15], action: 'create3Param', 
+                  desc: 'Creating s3 using 3-parameter constructor', concept: 'Using 3-Param Constructor' },
+                
+                { line: 'main', highlight: [18,19], action: 'createWithValidation', 
+                  desc: 'Creating s4 with invalid GPA - private validateGPA() will fix it', 
+                  concept: 'Private Function in Action' },
+                
+                { line: 'main', highlight: [21], action: 'complete', 
+                  desc: 'Program complete - all constructors demonstrated', concept: 'Complete' }
+            );
+        }
+
+        function highlightLines(section, lines) {
+            const codeElement = section === 'class' ? 
+                document.getElementById('classCode') : 
+                document.getElementById('mainCode');
+            
+            const codeLines = codeElement.innerHTML.split('\n');
+            let highlighted = '';
+            
+            codeLines.forEach((line, index) => {
+                if (lines.includes(index)) {
+                    highlighted += `<span class="highlight" id="line-${section}-${index}">${line}</span>\n`;
+                } else {
+                    highlighted += line + '\n';
+                }
+            });
+            
+            codeElement.innerHTML = highlighted;
+            
+            // Scroll to the first highlighted line
+            if (lines.length > 0) {
+                setTimeout(() => {
+                    const firstHighlight = document.getElementById(`line-${section}-${lines[0]}`);
+                    if (firstHighlight) {
+                        firstHighlight.scrollIntoView({ 
+                            behavior: 'smooth', 
+                            block: 'center',
+                            inline: 'nearest'
+                        });
+                    }
+                }, 100);
+            }
+        }
+
+        function clearHighlights() {
+            const classCode = document.getElementById('classCode');
+            const mainCode = document.getElementById('mainCode');
+            classCode.innerHTML = classCode.innerHTML.replace(/<span class="highlight">(.*?)<\/span>/g, '$1');
+            mainCode.innerHTML = mainCode.innerHTML.replace(/<span class="highlight">(.*?)<\/span>/g, '$1');
+        }
+
+        function updateObjects(html) {
+            document.getElementById('objectContent').innerHTML = html;
+        }
+
+        function updateMemory(html) {
+            document.getElementById('memoryContent').innerHTML = html;
+        }
+
+        function addConsoleOutput(text) {
+            const console = document.getElementById('consoleContent');
+            const line = document.createElement('div');
+            line.className = 'console-line';
+            line.textContent = text;
+            console.appendChild(line);
+            console.scrollTop = console.scrollHeight;
+        }
+
+        function executeStep(step) {
+            clearHighlights();
+            highlightLines(step.line, step.highlight);
+            document.getElementById('status').textContent = step.desc;
+            
+            switch(step.action) {
+                case 'showConcept':
+                    updateMemory(`<div style="padding: 10px;">
+                        <strong style="color: #8be9fd;">Concept: ${step.concept}</strong><br><br>
+                        Classes are blueprints for creating objects. They define data members and functions.
+                    </div>`);
+                    break;
+                    
+                case 'showPrivate':
+                    updateMemory(`<div style="padding: 10px;">
+                        <div class="private-indicator">[PRIVATE]</div>
+                        <div class="memory-item">
+                            <span>string name</span>
+                            <span style="color: #ff5555;">🔒</span>
+                        </div>
+                        <div class="memory-item">
+                            <span>int id</span>
+                            <span style="color: #ff5555;">🔒</span>
+                        </div>
+                        <div class="memory-item">
+                            <span>double gpa</span>
+                            <span style="color: #ff5555;">🔒</span>
+                        </div>
+                    </div>`);
+                    break;
+                    
+                case 'showPrivateFunc':
+                    updateMemory(`<div style="padding: 10px;">
+                        <div class="private-indicator">[PRIVATE FUNCTION]</div>
+                        <strong>validateGPA()</strong><br><br>
+                        • Can only be called from inside the class<br>
+                        • Ensures GPA stays between 0.0 and 4.0<br>
+                        • Example of encapsulation
+                    </div>`);
+                    break;
+                    
+                case 'showDefaultConstructor':
+                    updateMemory(`<div style="padding: 10px;">
+                        <div class="constructor-call">DEFAULT CONSTRUCTOR</div><br>
+                        <strong>Student()</strong><br><br>
+                        • No parameters required<br>
+                        • Initializes with default values<br>
+                        • Called with: Student s1;
+                    </div>`);
+                    break;
+                    
+                case 'showParamConstructor1':
+                    updateMemory(`<div style="padding: 10px;">
+                        <div class="constructor-call">OVERLOADED CONSTRUCTOR #1</div><br>
+                        <strong>Student(string, int)</strong><br><br>
+                        • Takes 2 parameters<br>
+                        • Sets name and ID<br>
+                        • GPA defaults to 0.0
+                    </div>`);
+                    break;
+                    
+                case 'showParamConstructor2':
+                    updateMemory(`<div style="padding: 10px;">
+                        <div class="constructor-call">OVERLOADED CONSTRUCTOR #2</div><br>
+                        <strong>Student(string, int, double)</strong><br><br>
+                        • Takes 3 parameters<br>
+                        • Calls private validateGPA()<br>
+                        • Complete initialization
+                    </div>`);
+                    break;
+                    
+                case 'createDefault':
+                    addConsoleOutput('Default constructor called');
+                    addConsoleOutput('Name: Unknown, ID: 0, GPA: 0');
+                    updateObjects(`
+                        <div class="object-box active">
+                            <strong>s1</strong> (Default Constructor)<br>
+                            name: "Unknown"<br>
+                            id: 0<br>
+                            gpa: 0.0
+                        </div>
+                    `);
+                    updateMemory(`
+                        <div style="padding: 5px;">
+                            <strong>Stack Memory:</strong><br>
+                            s1 @ 0x7ffe5c [24 bytes]<br>
+                            <span style="color: #50fa7b;">✓ Created with defaults</span>
+                        </div>
+                    `);
+                    break;
+                    
+                case 'create2Param':
+                    addConsoleOutput('2-param constructor for Alice');
+                    addConsoleOutput('Name: Alice, ID: 101, GPA: 0');
+                    updateObjects(document.getElementById('objectContent').innerHTML + `
+                        <div class="object-box active">
+                            <strong>s2</strong> (2-Param Constructor)<br>
+                            name: "Alice"<br>
+                            id: 101<br>
+                            gpa: 0.0
+                        </div>
+                    `);
+                    updateMemory(`
+                        <div style="padding: 5px;">
+                            <strong>Stack Memory:</strong><br>
+                            s1 @ 0x7ffe5c [24 bytes]<br>
+                            s2 @ 0x7ffe74 [24 bytes]<br>
+                            <span style="color: #50fa7b;">✓ 2 params provided</span>
+                        </div>
+                    `);
+                    break;
+                    
+                case 'create3Param':
+                    addConsoleOutput('3-param constructor for Bob');
+                    addConsoleOutput('Name: Bob, ID: 102, GPA: 3.75');
+                    updateObjects(document.getElementById('objectContent').innerHTML + `
+                        <div class="object-box active">
+                            <strong>s3</strong> (3-Param Constructor)<br>
+                            name: "Bob"<br>
+                            id: 102<br>
+                            gpa: 3.75
+                        </div>
+                    `);
+                    updateMemory(`
+                        <div style="padding: 5px;">
+                            <strong>Stack Memory:</strong><br>
+                            s1 @ 0x7ffe5c [24 bytes]<br>
+                            s2 @ 0x7ffe74 [24 bytes]<br>
+                            s3 @ 0x7ffe8c [24 bytes]<br>
+                            <span style="color: #50fa7b;">✓ All params provided</span>
+                        </div>
+                    `);
+                    break;
+                    
+                case 'createWithValidation':
+                    addConsoleOutput('3-param constructor for Charlie');
+                    addConsoleOutput('Name: Charlie, ID: 103, GPA: 4');
+                    updateObjects(document.getElementById('objectContent').innerHTML + `
+                        <div class="object-box active">
+                            <strong>s4</strong> (Private Function Used)<br>
+                            name: "Charlie"<br>
+                            id: 103<br>
+                            gpa: 4.0 <span style="color: #ff5555;">(capped from 5.0)</span>
+                        </div>
+                    `);
+                    updateMemory(`
+                        <div style="padding: 5px;">
+                            <strong>validateGPA() called!</strong><br>
+                            Input: 5.0 → Output: 4.0<br>
+                            <span style="color: #ff5555;">Private function automatically</span><br>
+                            <span style="color: #ff5555;">validated the GPA value</span>
+                        </div>
+                    `);
+                    break;
+                    
+                case 'complete':
+                    updateMemory(`
+                        <div style="padding: 10px; text-align: center;">
+                            <strong style="color: #50fa7b;">✓ Demo Complete!</strong><br><br>
+                            • Default constructor<br>
+                            • Constructor overloading<br>
+                            • Private member function<br>
+                            • All concepts demonstrated
+                        </div>
+                    `);
+                    break;
+            }
+        }
+
+        function runDemo() {
+            if (isRunning) return;
+            isRunning = true;
+            currentStep = 0;
+            resetDemo();
+            
+            document.getElementById('runBtn').disabled = true;
+            document.getElementById('stepBtn').disabled = true;
+            
+            demoInterval = setInterval(() => {
+                if (currentStep < steps.length) {
+                    executeStep(steps[currentStep]);
+                    currentStep++;
+                } else {
+                    stopDemo();
+                }
+            }, 2500);
+        }
+
+        function stopDemo() {
+            clearInterval(demoInterval);
+            isRunning = false;
+            document.getElementById('runBtn').disabled = false;
+            document.getElementById('stepBtn').disabled = false;
+            document.getElementById('status').textContent = 'Demo complete';
+        }
+
+        function nextStep() {
+            if (currentStep < steps.length) {
+                executeStep(steps[currentStep]);
+                currentStep++;
+                if (currentStep >= steps.length) {
+                    document.getElementById('stepBtn').disabled = true;
+                    document.getElementById('status').textContent = 'Demo complete';
+                }
+            }
+        }
+
+        function resetDemo() {
+            clearInterval(demoInterval);
+            isRunning = false;
+            currentStep = 0;
+            clearHighlights();
+            
+            document.getElementById('objectContent').innerHTML = 
+                '<div style="text-align: center; color: #6272a4; padding: 20px;">Objects will appear here as they are created</div>';
+            document.getElementById('memoryContent').innerHTML = 
+                '<div style="text-align: center; color: #6272a4; padding: 20px;">Memory allocation will be shown here</div>';
+            document.getElementById('consoleContent').innerHTML = '';
+            document.getElementById('status').textContent = 'Ready to start';
+            
+            document.getElementById('runBtn').disabled = false;
+            document.getElementById('stepBtn').disabled = false;
+        }
+
+        // Initialize on load
+        window.onload = function() {
+            initSteps();
+        };
+    </script>
+</body>
+</html>
