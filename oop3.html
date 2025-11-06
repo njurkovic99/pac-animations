@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OOP Inheritance Tutorial - C++ Animation</title>
+    <style>
+        body {
+            font-family: 'Consolas', 'Monaco', monospace;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #1a2a3a 0%, #2c3e50 50%, #34495e 100%);
+            color: #fff;
+            min-width: 800px;
+            overflow-x: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 900px;
+            margin: 0 auto;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #3498db;
+            text-shadow: 0 0 10px rgba(52, 152, 219, 0.3);
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: 600px 280px;
+            gap: 20px;
+            min-width: 900px;
+            max-width: 900px;
+        }
+
+        .left-column {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .right-column {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .code-window, .class-diagram-window, .memory-window, .console-window {
+            border: 2px solid #3498db;
+            border-radius: 12px;
+            background: rgba(30, 30, 30, 0.9);
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        }
+
+        .window-header {
+            background: linear-gradient(90deg, #3498db 0%, #5dade2 100%);
+            border-bottom: 1px solid #3498db;
+            padding: 10px 15px;
+            font-weight: bold;
+            font-size: 14px;
+            color: #1a2332;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .window-content {
+            padding: 15px;
+            background: #1a1a2e;
+            min-height: 150px;
+        }
+
+        .code-window .window-content {
+            height: 635px;
+            overflow-y: auto;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .class-diagram-window .window-content {
+            height: 180px;
+            overflow-y: auto;
+        }
+
+        .memory-window .window-content {
+            height: 140px;
+        }
+
+        .console-window .window-content {
+            height: 140px;
+        }
+
+        .code-line {
+            padding: 2px 5px;
+            border-radius: 3px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .code-line.highlight {
+            background: rgba(255, 255, 0, 0.3);
+            border-left: 3px solid #ffeb3b;
+        }
+
+        .code-line.executed {
+            opacity: 0.6;
+            background: rgba(100, 100, 100, 0.1);
+        }
+
+        /* Syntax highlighting matching OOP tutorial 1 */
+        .keyword {
+            color: #ff7979;
+            font-weight: bold;
+        }
+
+        .class-name {
+            color: #74b9ff;
+            font-weight: bold;
+        }
+
+        .function {
+            color: #55efc4;
+        }
+
+        .string {
+            color: #fdcb6e;
+        }
+
+        .comment {
+            color: #95a5a6;
+            font-style: italic;
+        }
+
+        .number {
+            color: #a29bfe;
+        }
+
+        .access-modifier {
+            color: #fd79a8;
+            font-weight: bold;
+        }
+
+        /* Class Diagram Styles */
+        .class-box {
+            border: 1px solid #3498db;
+            border-radius: 6px;
+            margin: 5px;
+            background: rgba(0, 0, 0, 0.6);
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.5s ease;
+            font-size: 11px;
+        }
+
+        .class-box.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .class-header {
+            background: rgba(52, 152, 219, 0.2);
+            padding: 6px;
+            border-bottom: 1px solid #3498db;
+            font-weight: bold;
+            text-align: center;
+            font-size: 12px;
+            color: #5dade2;
+        }
+
+        .class-section {
+            padding: 5px;
+            border-bottom: 1px solid rgba(52, 152, 219, 0.2);
+        }
+
+        .class-section-title {
+            color: #fd79a8;
+            font-size: 10px;
+            margin-bottom: 3px;
+            font-weight: bold;
+        }
+
+        .member-item {
+            margin: 2px 0;
+            padding: 2px 4px;
+            border-radius: 2px;
+            font-size: 10px;
+            transition: all 0.3s ease;
+            color: #aed6f1;
+        }
+
+        .member-item.highlight {
+            background: rgba(255, 255, 0, 0.4);
+            border-left: 2px solid #ffeb3b;
+        }
+
+        .inheritance-arrow {
+            text-align: center;
+            font-size: 18px;
+            color: #55efc4;
+            margin: 5px 0;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .inheritance-arrow.visible {
+            opacity: 1;
+        }
+
+        /* Memory Visualization */
+        .memory-block {
+            border: 1px solid #3498db;
+            border-radius: 4px;
+            padding: 8px;
+            margin: 8px 0;
+            background: rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            transform: scale(0.95);
+            transition: all 0.5s ease;
+        }
+
+        .memory-block.visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .memory-header {
+            color: #5dade2;
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 12px;
+        }
+
+        .memory-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 2px 5px;
+            margin: 2px 0;
+            border-radius: 3px;
+            transition: all 0.3s ease;
+            font-size: 11px;
+            color: #aed6f1;
+        }
+
+        .memory-item.highlight {
+            background: rgba(255, 255, 0, 0.3);
+            border-left: 2px solid #ffeb3b;
+        }
+
+        /* Console */
+        .console-line {
+            margin: 2px 0;
+            padding: 3px 5px;
+            font-family: monospace;
+            opacity: 0;
+            transform: translateX(-10px);
+            transition: all 0.3s ease;
+            font-size: 12px;
+        }
+
+        .console-line.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .console-output {
+            color: #00ff00;
+        }
+
+        .console-method {
+            color: #ffd700;
+        }
+
+        /* Control Panel */
+        .control-panel {
+            margin-top: 20px;
+            text-align: center;
+            padding: 15px;
+            background: rgba(30, 30, 30, 0.9);
+            border-radius: 12px;
+            border: 2px solid #3498db;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #3498db 0%, #5dade2 100%);
+            border: 2px solid #3498db;
+            color: #1a2332;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, #5dade2 0%, #3498db 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.5);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #4a4a4a;
+            border-color: #666;
+        }
+
+        .step-info {
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 5px;
+            font-size: 14px;
+            color: #aed6f1;
+        }
+
+        .step-title {
+            color: #5dade2;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1a1a2e;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #3498db;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #5dade2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="page-title">🎯 OOP Inheritance: Base & Derived Classes</h1>
+        
+        <div class="grid-container">
+            <div class="left-column">
+                <div class="code-window">
+                    <div class="window-header">
+                        📝 C++ Code
+                    </div>
+                    <div class="window-content">
+                        <div class="code-line" id="line1"><span class="comment">// Base class with protected members</span></div>
+                        <div class="code-line" id="line2"><span class="keyword">class</span> <span class="class-name">Animal</span> {</div>
+                        <div class="code-line" id="line3"><span class="access-modifier">protected:</span></div>
+                        <div class="code-line" id="line4">    <span class="keyword">string</span> name;</div>
+                        <div class="code-line" id="line5">    <span class="keyword">int</span> age;</div>
+                        <div class="code-line" id="line6"></div>
+                        <div class="code-line" id="line7"><span class="access-modifier">public:</span></div>
+                        <div class="code-line" id="line8">    <span class="function">Animal</span>(<span class="keyword">string</span> n, <span class="keyword">int</span> a) : name(n), age(a) {}</div>
+                        <div class="code-line" id="line9"></div>
+                        <div class="code-line" id="line10">    <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="function">makeSound</span>() {</div>
+                        <div class="code-line" id="line11">        cout << name << <span class="string">" makes a sound"</span> << endl;</div>
+                        <div class="code-line" id="line12">    }</div>
+                        <div class="code-line" id="line13"></div>
+                        <div class="code-line" id="line14">    <span class="keyword">void</span> <span class="function">displayInfo</span>() {</div>
+                        <div class="code-line" id="line15">        cout << <span class="string">"Name: "</span> << name << <span class="string">", Age: "</span> << age << endl;</div>
+                        <div class="code-line" id="line16">    }</div>
+                        <div class="code-line" id="line17">};</div>
+                        <div class="code-line" id="line18"></div>
+                        <div class="code-line" id="line19"><span class="comment">// Derived class inheriting from Animal</span></div>
+                        <div class="code-line" id="line20"><span class="keyword">class</span> <span class="class-name">Dog</span> : <span class="keyword">public</span> <span class="class-name">Animal</span> {</div>
+                        <div class="code-line" id="line21"><span class="access-modifier">private:</span></div>
+                        <div class="code-line" id="line22">    <span class="keyword">string</span> breed;</div>
+                        <div class="code-line" id="line23"></div>
+                        <div class="code-line" id="line24"><span class="access-modifier">public:</span></div>
+                        <div class="code-line" id="line25">    <span class="function">Dog</span>(<span class="keyword">string</span> n, <span class="keyword">int</span> a, <span class="keyword">string</span> b)</div>
+                        <div class="code-line" id="line26">        : <span class="class-name">Animal</span>(n, a), breed(b) {}</div>
+                        <div class="code-line" id="line27"></div>
+                        <div class="code-line" id="line28">    <span class="comment">// Redefining base class method</span></div>
+                        <div class="code-line" id="line29">    <span class="keyword">void</span> <span class="function">makeSound</span>() <span class="keyword">override</span> {</div>
+                        <div class="code-line" id="line30">        cout << name << <span class="string">" barks: Woof! Woof!"</span> << endl;</div>
+                        <div class="code-line" id="line31">    }</div>
+                        <div class="code-line" id="line32"></div>
+                        <div class="code-line" id="line33">    <span class="keyword">void</span> <span class="function">wagTail</span>() {</div>
+                        <div class="code-line" id="line34">        cout << name << <span class="string">" is wagging tail happily!"</span> << endl;</div>
+                        <div class="code-line" id="line35">    }</div>
+                        <div class="code-line" id="line36">};</div>
+                        <div class="code-line" id="line37"></div>
+                        <div class="code-line" id="line38"><span class="comment">// Main function</span></div>
+                        <div class="code-line" id="line39"><span class="keyword">int</span> <span class="function">main</span>() {</div>
+                        <div class="code-line" id="line40">    <span class="class-name">Dog</span> myDog(<span class="string">"Buddy"</span>, <span class="number">3</span>, <span class="string">"Golden Retriever"</span>);</div>
+                        <div class="code-line" id="line41"></div>
+                        <div class="code-line" id="line42">    myDog.<span class="function">displayInfo</span>();  <span class="comment">// Inherited method</span></div>
+                        <div class="code-line" id="line43">    myDog.<span class="function">makeSound</span>();   <span class="comment">// Overridden method</span></div>
+                        <div class="code-line" id="line44">    myDog.<span class="function">wagTail</span>();     <span class="comment">// Derived class method</span></div>
+                        <div class="code-line" id="line45"></div>
+                        <div class="code-line" id="line46">    <span class="keyword">return</span> <span class="number">0</span>;</div>
+                        <div class="code-line" id="line47">}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="right-column">
+                <div class="class-diagram-window">
+                    <div class="window-header">
+                        📊 Class Hierarchy
+                    </div>
+                    <div class="window-content">
+                        <div class="class-box" id="base-class">
+                            <div class="class-header">Animal (Base)</div>
+                            <div class="class-section">
+                                <div class="class-section-title">Protected:</div>
+                                <div class="member-item" id="base-name">string name</div>
+                                <div class="member-item" id="base-age">int age</div>
+                            </div>
+                            <div class="class-section">
+                                <div class="class-section-title">Public:</div>
+                                <div class="member-item" id="base-constructor">Animal()</div>
+                                <div class="member-item" id="base-makesound">makeSound()</div>
+                                <div class="member-item" id="base-display">displayInfo()</div>
+                            </div>
+                        </div>
+                        
+                        <div class="inheritance-arrow" id="arrow">⬇️</div>
+                        
+                        <div class="class-box" id="derived-class">
+                            <div class="class-header">Dog (Derived)</div>
+                            <div class="class-section">
+                                <div class="class-section-title">Private:</div>
+                                <div class="member-item" id="derived-breed">string breed</div>
+                            </div>
+                            <div class="class-section">
+                                <div class="class-section-title">Public:</div>
+                                <div class="member-item" id="derived-constructor">Dog()</div>
+                                <div class="member-item" id="derived-makesound">makeSound()</div>
+                                <div class="member-item" id="derived-wagtail">wagTail()</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="memory-window">
+                    <div class="window-header">
+                        💾 Memory
+                    </div>
+                    <div class="window-content" id="memory-content">
+                        <div class="memory-block" id="memory-dog">
+                            <div class="memory-header">Dog Object: myDog</div>
+                            <div class="memory-item" id="mem-name">
+                                <span>name:</span>
+                                <span>"Buddy"</span>
+                            </div>
+                            <div class="memory-item" id="mem-age">
+                                <span>age:</span>
+                                <span>3</span>
+                            </div>
+                            <div class="memory-item" id="mem-breed">
+                                <span>breed:</span>
+                                <span>"Golden Retriever"</span>
+                            </div>
+                            <div class="memory-item" id="mem-vtable">
+                                <span>vtable:</span>
+                                <span>→ Dog::makeSound</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="console-window">
+                    <div class="window-header">
+                        🖥️ Console Output
+                    </div>
+                    <div class="window-content" id="console-content">
+                        <!-- Output will appear here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="control-panel">
+            <div class="control-buttons">
+                <button id="startBtn" onclick="startAnimation()">▶️ Start</button>
+                <button id="stepBtn" onclick="nextStep()" disabled>Next Step</button>
+                <button id="resetBtn" onclick="resetAnimation()">🔄 Reset</button>
+                <button id="autoBtn" onclick="toggleAuto()">🎬 Auto Play</button>
+            </div>
+            <div class="step-info">
+                <div class="step-title" id="stepTitle">Ready to start</div>
+                <div id="stepDescription">Click Start to begin the inheritance demonstration</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 0;
+        let autoPlay = false;
+        let autoPlayInterval;
+        
+        const steps = [
+            {
+                title: "Base Class Definition",
+                description: "Defining the Animal base class with protected members",
+                action: () => {
+                    highlightLines([2, 3, 4, 5, 17]);
+                    showElement('base-class');
+                    highlightMembers(['base-name', 'base-age']);
+                }
+            },
+            {
+                title: "Protected Members",
+                description: "Protected members are accessible to derived classes but not outside",
+                action: () => {
+                    highlightLines([3, 4, 5]);
+                    highlightMembers(['base-name', 'base-age']);
+                    addExplanation("Protected provides controlled inheritance access");
+                }
+            },
+            {
+                title: "Base Class Methods",
+                description: "Virtual function allows method overriding in derived classes",
+                action: () => {
+                    highlightLines([10, 11, 12]);
+                    highlightMembers(['base-makesound']);
+                    addExplanation("Virtual enables polymorphism");
+                }
+            },
+            {
+                title: "Derived Class Declaration",
+                description: "Dog class inherits publicly from Animal base class",
+                action: () => {
+                    highlightLines([20]);
+                    showElement('arrow');
+                    showElement('derived-class');
+                    addExplanation("Public inheritance maintains access levels");
+                }
+            },
+            {
+                title: "Inheritance Mechanism",
+                description: "Dog inherits all protected and public members from Animal",
+                action: () => {
+                    highlightMembers(['base-name', 'base-age']);
+                    addExplanation("Inherited members become part of Dog");
+                }
+            },
+            {
+                title: "Adding New Members",
+                description: "Derived class adds its own private member 'breed'",
+                action: () => {
+                    highlightLines([21, 22]);
+                    highlightMembers(['derived-breed']);
+                    addExplanation("Derived classes extend base functionality");
+                }
+            },
+            {
+                title: "Constructor Chaining",
+                description: "Dog constructor calls Animal constructor using initialization list",
+                action: () => {
+                    highlightLines([25, 26]);
+                    highlightMembers(['derived-constructor', 'base-constructor']);
+                    addExplanation("Base constructor executes first");
+                }
+            },
+            {
+                title: "Method Overriding",
+                description: "Dog redefines makeSound() method with override keyword",
+                action: () => {
+                    highlightLines([29, 30, 31]);
+                    highlightMembers(['derived-makesound']);
+                    addExplanation("Override ensures correct virtual overriding");
+                }
+            },
+            {
+                title: "Creating Dog Object",
+                description: "Instantiating a Dog object with constructor parameters",
+                action: () => {
+                    highlightLines([40]);
+                    showElement('memory-dog');
+                    addExplanation("Memory allocated for base + derived parts");
+                }
+            },
+            {
+                title: "Memory Layout",
+                description: "Dog object contains inherited members and its own members",
+                action: () => {
+                    highlightMembers(['mem-name', 'mem-age', 'mem-breed']);
+                    addExplanation("Vtable pointer for virtual functions");
+                }
+            },
+            {
+                title: "Calling Inherited Method",
+                description: "displayInfo() is inherited from Animal and can be called on Dog",
+                action: () => {
+                    highlightLines([42]);
+                    highlightMembers(['base-display']);
+                    addConsoleOutput("Name: Buddy, Age: 3", "output");
+                }
+            },
+            {
+                title: "Calling Overridden Method",
+                description: "makeSound() calls Dog's version, not Animal's version",
+                action: () => {
+                    highlightLines([43]);
+                    highlightMembers(['derived-makesound', 'mem-vtable']);
+                    addConsoleOutput("Buddy barks: Woof! Woof!", "method");
+                }
+            },
+            {
+                title: "Calling Derived Method",
+                description: "wagTail() is specific to Dog class",
+                action: () => {
+                    highlightLines([44]);
+                    highlightMembers(['derived-wagtail']);
+                    addConsoleOutput("Buddy is wagging tail happily!", "output");
+                }
+            },
+            {
+                title: "Polymorphism in Action",
+                description: "Virtual function table enables runtime polymorphism",
+                action: () => {
+                    highlightMembers(['mem-vtable']);
+                    addExplanation("Vtable determines which makeSound() to call");
+                }
+            },
+            {
+                title: "Complete Execution",
+                description: "Program demonstrates inheritance, protected members, and method overriding",
+                action: () => {
+                    highlightLines([46]);
+                    addExplanation("Inheritance enables code reuse & polymorphism");
+                }
+            }
+        ];
+
+        function highlightLines(lineNumbers) {
+            document.querySelectorAll('.code-line').forEach(line => {
+                line.classList.remove('highlight');
+            });
+            lineNumbers.forEach(num => {
+                const line = document.getElementById(`line${num}`);
+                if (line) {
+                    line.classList.add('highlight');
+                    line.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+        }
+
+        function showElement(elementId) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.classList.add('visible');
+            }
+        }
+
+        function highlightMembers(memberIds) {
+            document.querySelectorAll('.member-item').forEach(item => {
+                item.classList.remove('highlight');
+            });
+            memberIds.forEach(id => {
+                const member = document.getElementById(id);
+                if (member) {
+                    member.classList.add('highlight');
+                }
+            });
+        }
+
+        function addConsoleOutput(text, type = 'output') {
+            const console = document.getElementById('console-content');
+            const line = document.createElement('div');
+            line.className = `console-line console-${type}`;
+            line.textContent = text;
+            console.appendChild(line);
+            setTimeout(() => line.classList.add('visible'), 100);
+        }
+
+        function addExplanation(text) {
+            document.getElementById('stepDescription').innerHTML += 
+                `<div style="margin-top: 5px; color: #5dade2; font-style: italic;">💡 ${text}</div>`;
+        }
+
+        function startAnimation() {
+            currentStep = 0;
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('stepBtn').disabled = false;
+            document.getElementById('autoBtn').disabled = false;
+            executeStep();
+        }
+
+        function nextStep() {
+            if (currentStep < steps.length - 1) {
+                currentStep++;
+                executeStep();
+            } else {
+                endAnimation();
+            }
+        }
+
+        function executeStep() {
+            const step = steps[currentStep];
+            document.getElementById('stepTitle').textContent = `Step ${currentStep + 1}: ${step.title}`;
+            document.getElementById('stepDescription').textContent = step.description;
+            
+            // Mark previous lines as executed
+            if (currentStep > 0) {
+                document.querySelectorAll('.highlight').forEach(line => {
+                    if (!line.classList.contains('member-item')) {
+                        line.classList.add('executed');
+                    }
+                });
+            }
+            
+            step.action();
+            
+            if (currentStep === steps.length - 1) {
+                document.getElementById('stepBtn').textContent = 'Finish';
+            }
+        }
+
+        function endAnimation() {
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('stepBtn').disabled = true;
+            document.getElementById('stepBtn').textContent = 'Next Step';
+            stopAuto();
+        }
+
+        function resetAnimation() {
+            currentStep = 0;
+            stopAuto();
+            
+            // Clear highlights
+            document.querySelectorAll('.code-line').forEach(line => {
+                line.classList.remove('highlight', 'executed');
+            });
+            
+            // Hide elements
+            document.querySelectorAll('.class-box, .inheritance-arrow, .memory-block').forEach(el => {
+                el.classList.remove('visible');
+            });
+            
+            // Clear console
+            document.getElementById('console-content').innerHTML = '';
+            
+            // Clear member highlights
+            document.querySelectorAll('.member-item').forEach(item => {
+                item.classList.remove('highlight');
+            });
+            
+            // Reset UI
+            document.getElementById('stepTitle').textContent = 'Ready to start';
+            document.getElementById('stepDescription').textContent = 'Click Start to begin the inheritance demonstration';
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('stepBtn').disabled = true;
+            document.getElementById('autoBtn').disabled = false;
+            document.getElementById('autoBtn').textContent = '🎬 Auto Play';
+        }
+
+        function toggleAuto() {
+            autoPlay = !autoPlay;
+            if (autoPlay) {
+                document.getElementById('autoBtn').textContent = '⏸️ Pause';
+                if (currentStep === 0 && document.getElementById('startBtn').disabled === false) {
+                    startAnimation();
+                }
+                autoPlayInterval = setInterval(() => {
+                    if (currentStep < steps.length - 1) {
+                        nextStep();
+                    } else {
+                        stopAuto();
+                    }
+                }, 3000);
+            } else {
+                stopAuto();
+            }
+        }
+
+        function stopAuto() {
+            autoPlay = false;
+            clearInterval(autoPlayInterval);
+            document.getElementById('autoBtn').textContent = '🎬 Auto Play';
+        }
+    </script>
+</body>
+</html>
