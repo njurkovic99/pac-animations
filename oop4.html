@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C++ OOP: Advanced Concepts Animation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+        }
+        
+        .container {
+            width: 810px;
+            height: calc(100vh - 20px);
+            max-height: 900px;
+            background: #1e1e1e;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: linear-gradient(90deg, #4a90e2, #357abd);
+            color: white;
+            padding: 15px 20px;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 440px 300px;
+            gap: 20px;
+            padding: 20px;
+            background: #2d2d30;
+            flex: 1;
+            min-height: 0;
+        }
+        
+        .left-column {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .right-column {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .window {
+            background: #1e1e1e;
+            border: 1px solid #4a90e2;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .window-header {
+            background: linear-gradient(90deg, #3a7bd5, #2e5ba8);
+            color: white;
+            padding: 8px 12px;
+            font-size: 12px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+        
+        .window-content {
+            padding: 10px;
+            color: #d4d4d4;
+            font-size: 11px;
+            line-height: 1.5;
+            overflow-y: auto;
+            overflow-x: auto;
+        }
+        
+        /* Always show scrollbars for better UX */
+        .window-content::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        .window-content::-webkit-scrollbar-track {
+            background: #2d2d30;
+        }
+        
+        .window-content::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 4px;
+        }
+        
+        .window-content::-webkit-scrollbar-thumb:hover {
+            background: #666;
+        }
+        
+        .code-window {
+            height: 345px;
+        }
+        
+        .code-window .window-content {
+            height: 320px;
+        }
+        
+        .objects-window {
+            height: 243px;
+        }
+        
+        .objects-window .window-content {
+            height: 218px;
+        }
+        
+        .memory-window {
+            height: 203px;
+        }
+        
+        .memory-window .window-content {
+            height: 178px;
+        }
+        
+        .console-window {
+            height: 233px;
+        }
+        
+        .console-window .window-content {
+            background: #000;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            height: 208px;
+            white-space: pre;
+        }
+        
+        .controls {
+            background: #252526;
+            padding: 15px;
+            text-align: center;
+            border-top: 1px solid #3a3a3a;
+        }
+        
+        .control-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+        
+        button {
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        button:disabled {
+            background: #555;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        
+        #statusMessage {
+            color: #4CAF50;
+            font-size: 12px;
+            margin-top: 10px;
+            min-height: 20px;
+        }
+        
+        /* Syntax highlighting */
+        .keyword { color: #569cd6; }
+        .class-name { color: #4ec9b0; }
+        .function { color: #dcdcaa; }
+        .string { color: #ce9178; }
+        .number { color: #b5cea8; }
+        .comment { color: #6a9955; }
+        .operator { color: #d4d4d4; }
+        .static-keyword { color: #c586c0; }
+        
+        /* Highlight effect */
+        .highlight {
+            background: rgba(255, 255, 0, 0.2);
+            animation: pulse 1s ease-in-out;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { background: rgba(255, 255, 0, 0.2); }
+            50% { background: rgba(255, 255, 0, 0.4); }
+        }
+        
+        .object-item {
+            padding: 6px;
+            margin: 3px 0;
+            border: 1px solid #444;
+            border-radius: 4px;
+            background: #2a2a2a;
+            font-size: 10px;
+        }
+        
+        .object-item.active {
+            border-color: #4CAF50;
+            animation: glow 1s ease-in-out;
+        }
+        
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 5px rgba(76, 175, 80, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(76, 175, 80, 0.8); }
+        }
+        
+        .memory-block {
+            display: inline-block;
+            padding: 3px 6px;
+            margin: 2px;
+            background: #333;
+            border: 1px solid #555;
+            border-radius: 2px;
+            font-size: 10px;
+        }
+        
+        .static-member {
+            background: #3a2a5a;
+            border-color: #8a6ab8;
+        }
+        
+        pre {
+            margin: 0;
+            white-space: pre;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            C++ OOP: Static Members, Copy Constructor & Operator Overloading
+        </div>
+        
+        <div class="main-content">
+            <div class="left-column">
+                <div class="window code-window">
+                    <div class="window-header">📁 Counter.h</div>
+                    <div class="window-content" id="classCode">
+                        <pre><span class="keyword">class</span> <span class="class-name">Counter</span> {
+<span class="keyword">private</span>:
+    <span class="keyword">int</span> value;
+    <span class="keyword static-keyword">static</span> <span class="keyword">int</span> totalCount;  <span class="comment">// Static member</span>
+    
+<span class="keyword">public</span>:
+    <span class="comment">// Constructor</span>
+    <span class="class-name">Counter</span>(<span class="keyword">int</span> v = <span class="number">0</span>) : value(v) {
+        totalCount++;
+    }
+    
+    <span class="comment">// Copy constructor</span>
+    <span class="class-name">Counter</span>(<span class="keyword">const</span> <span class="class-name">Counter</span>& other) {
+        value = other.value;
+        totalCount++;
+    }
+    
+    <span class="comment">// Operator overloading</span>
+    <span class="class-name">Counter</span> <span class="keyword">operator</span>+(<span class="keyword">const</span> <span class="class-name">Counter</span>& other) {
+        <span class="keyword">return</span> <span class="class-name">Counter</span>(value + other.value);
+    }
+    
+    <span class="keyword">void</span> <span class="function">setValue</span>(<span class="keyword">int</span> v) { value = v; }
+    <span class="keyword">int</span> <span class="function">getValue</span>() <span class="keyword">const</span> { <span class="keyword">return</span> value; }
+    <span class="keyword static-keyword">static</span> <span class="keyword">int</span> <span class="function">getTotal</span>() { <span class="keyword">return</span> totalCount; }
+};
+
+<span class="comment">// Initialize static member</span>
+<span class="keyword">int</span> <span class="class-name">Counter</span>::totalCount = <span class="number">0</span>;</pre>
+                    </div>
+                </div>
+                
+                <div class="window code-window">
+                    <div class="window-header">📁 main.cpp</div>
+                    <div class="window-content" id="mainCode">
+                        <pre><span class="keyword">#include</span> <span class="string">&lt;iostream&gt;</span>
+<span class="keyword">#include</span> <span class="string">"Counter.h"</span>
+<span class="keyword">using namespace</span> std;
+
+<span class="keyword">int</span> <span class="function">main</span>() {
+    <span class="comment">// Create instance</span>
+    <span class="class-name">Counter</span> c1(<span class="number">10</span>);
+    cout &lt;&lt; <span class="string">"c1 value: "</span> &lt;&lt; c1.<span class="function">getValue</span>() &lt;&lt; endl;
+    cout &lt;&lt; <span class="string">"Total counters: "</span> &lt;&lt; <span class="class-name">Counter</span>::<span class="function">getTotal</span>() &lt;&lt; endl;
+    
+    <span class="comment">// Member-wise assignment</span>
+    <span class="class-name">Counter</span> c2;
+    c2 = c1;  <span class="comment">// Assignment</span>
+    cout &lt;&lt; <span class="string">"c2 value after assignment: "</span> &lt;&lt; c2.<span class="function">getValue</span>() &lt;&lt; endl;
+    
+    <span class="comment">// Copy constructor</span>
+    <span class="class-name">Counter</span> c3(c1);  <span class="comment">// Copy constructor called</span>
+    cout &lt;&lt; <span class="string">"c3 value: "</span> &lt;&lt; c3.<span class="function">getValue</span>() &lt;&lt; endl;
+    cout &lt;&lt; <span class="string">"Total counters: "</span> &lt;&lt; <span class="class-name">Counter</span>::<span class="function">getTotal</span>() &lt;&lt; endl;
+    
+    <span class="comment">// Operator overloading</span>
+    <span class="class-name">Counter</span> c4 = c1 + c3;  <span class="comment">// Uses operator+</span>
+    cout &lt;&lt; <span class="string">"c4 value (c1 + c3): "</span> &lt;&lt; c4.<span class="function">getValue</span>() &lt;&lt; endl;
+    cout &lt;&lt; <span class="string">"Total counters: "</span> &lt;&lt; <span class="class-name">Counter</span>::<span class="function">getTotal</span>() &lt;&lt; endl;
+    
+    <span class="keyword">return</span> <span class="number">0</span>;
+}</pre>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="right-column">
+                <div class="window objects-window">
+                    <div class="window-header">🔷 Object Instances</div>
+                    <div class="window-content" id="objectsDisplay">
+                        <div style="color: #7f8c8d; text-align: center; margin-top: 70px;">
+                            Object instances will appear here
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="window memory-window">
+                    <div class="window-header">💾 Memory Layout</div>
+                    <div class="window-content" id="memoryDisplay">
+                        <div style="color: #7f8c8d; text-align: center; margin-top: 55px;">
+                            Memory allocation will appear here
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="window console-window">
+                    <div class="window-header">▶️ Console Output</div>
+                    <div class="window-content" id="consoleOutput">Ready to run...</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="control-buttons">
+                <button id="runBtn" onclick="runDemo()">▶ Run Demo</button>
+                <button id="stepBtn" onclick="nextStep()">⏭ Next Step</button>
+                <button onclick="resetDemo()">🔄 Reset</button>
+            </div>
+            <div id="statusMessage"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 0;
+        let isRunning = false;
+        let stepInterval;
+        const totalSteps = 11;
+
+        const steps = [
+            {
+                title: "Create first instance c1(10)",
+                classLines: [6, 7, 8, 9],
+                mainLines: [5, 6],
+                objects: `<div class="object-item active">
+    <strong>c1</strong> {value: 10}
+</div>`,
+                memory: `<strong>Instance Members:</strong>
+<div class="memory-block">c1.value = 10</div>
+<strong>Static Members:</strong>
+<div class="memory-block static-member">totalCount = 1</div>`,
+                console: "c1 value: 10"
+            },
+            {
+                title: "Display static member (shared by all)",
+                classLines: [24],
+                mainLines: [7, 8],
+                objects: `<div class="object-item">
+    <strong>c1</strong> {value: 10}
+</div>`,
+                memory: `<strong>Instance Members:</strong>
+<div class="memory-block">c1.value = 10</div>
+<strong>Static Members:</strong>
+<div class="memory-block static-member">totalCount = 1</div>`,
+                console: "c1 value: 10\nTotal counters: 1"
+            },
+            {
+                title: "Create c2 with default constructor",
+                classLines: [6, 7, 8, 9],
+                mainLines: [10, 11],
+                objects: `<div class="object-item">
+    <strong>c1</strong> {value: 10}
+</div>
+<div class="object-item active">
+    <strong>c2</strong> {value: 0}
+</div>`,
+                memory: `<strong>Instance Members:</strong>
+<div class="memory-block">c1.value = 10</div>
+<div class="memory-block">c2.value = 0</div>
+<strong>Static Members:</strong>
+<div class="memory-block static-member">totalCount = 2</div>`,
+                console: "c1 value: 10\nTotal counters: 1"
+            },
+            {
+                title: "Member-wise assignment (c2 = c1)",
+                classLines: [],
+                mainLines: [11, 12],
+                objects: `<div class="object-item">
+    <strong>c1</strong> {value: 10}
+</div>
+<div class="object-item active">
+    <strong>c2</strong> {value: 10} <span style="color: #4CAF50;">←copied</span>
+</div>`,
+                memory: `<strong>Instance Members:</strong>
+<div class="memory-block">c1.value = 10</div>
+<div class="memory-block" style="border-color: #4CAF50;">c2.value = 10</div>
+<strong>Static Members:</strong>
+<div class="memory-block static-member">totalCount = 2</div>
+<span style="color: #ce9178;">Note: Assignment doesn't change count!</span>`,
+                console: "c1 value: 10\nTotal counters: 1\nc2 value after assignment: 10"
+            },
+            {
+                title: "Copy constructor creates c3",
+                classLines: [11, 12, 13, 14, 15],
+                mainLines: [15, 16],
+                objects: `<div class="object-item">
+    <strong>c1</strong> {value: 10}
+</div>
+<div class="object-item">
+    <strong>c2</strong> {value: 10}
+</div>
+<div class="object-item active">
+    <strong>c3</strong> {value: 10} <span style="color: #4ec9b0;">←copy</span>
+</div>`,
+                memory: `<strong>Instance Members:</strong>
+<div class="memory-block">c1.value = 10</div>
+<div class="memory-block">c2.value = 10</div>
+<div class="memory-block" style="border-color: #4ec9b0;">c3.value = 10</div>
+<strong>Static Members:</strong>
+<div class="memory-block static-member">totalCount = 3</div>`,
+                console: "c1 value: 10\nTotal counters: 1\nc2 value after assignment: 10\nc3 value: 10"
+            },
+            {
+                title: "Display updated static count",
+                classLines: [24],
+                mainLines: [17, 18],
+                objects: `<div class="object-item">
+    <strong>c1</strong> {value: 10}
+</div>
+<div class="object-item">
+    <strong>c2</strong> {value: 10}
+</div>
+<div class="object-item">
+    <strong>c3</strong> {value: 10}
+</div>`,
+                memory: `<strong>Instance Members:</strong>
+<div class="memory-block">c1.value = 10</div>
+<div class="memory-block">c2.value = 10</div>
+<div class="memory-block">c3.value = 10</div>
+<strong>Static Members:</strong>
+<div class="memory-block static-member" style="animation: pulse 1s;">totalCount = 3</div>`,
+                console: "c1 value: 10\nTotal counters: 1\nc2 value after assignment: 10\nc3 value: 10\nTotal counters: 3"
+            },
+            {
+                title: "Operator overloading: c1 + c3",
+                classLines: [17, 18, 19, 20],
+                mainLines: [20, 21],
+                objects: `<div class="object-item active">
+    <strong>c1</strong> {value: 10} <span style="color: #dcdcaa;">+</span>
+</div>
+<div class="object-item">
+    <strong>c2</strong> {value: 10}
+</div>
+<div class="object-item active">
+    <strong>c3</strong> {value: 10}
+</div>`,
+                memory: `<span style="color: #dcdcaa;">Operator+ called: 10 + 10 = 20</span>
+<strong>Instance Members:</strong>
+<div class="memory-block">c1.value = 10</div>
+<div class="memory-block">c2.value = 10</div>
+<div class="memory-block">c3.value = 10</div>`,
+                console: "c1 value: 10\nTotal counters: 1\nc2 value after assignment: 10\nc3 value: 10\nTotal counters: 3"
+            },
+            {
+                title: "Create c4 from addition result",
+                classLines: [6, 7, 8, 9],
+                mainLines: [20, 21],
+                objects: `<div class="object-item">
+    <strong>c1</strong> {value: 10}
+</div>
+<div class="object-item">
+    <strong>c2</strong> {value: 10}
+</div>
+<div class="object-item">
+    <strong>c3</strong> {value: 10}
+</div>
+<div class="object-item active">
+    <strong>c4</strong> {value: 20} <span style="color: #dcdcaa;">←sum</span>
+</div>`,
+                memory: `<strong>Instance Members:</strong>
+<div class="memory-block">c1.value = 10</div>
+<div class="memory-block">c2.value = 10</div>
+<div class="memory-block">c3.value = 10</div>
+<div class="memory-block" style="border-color: #dcdcaa;">c4.value = 20</div>
+<strong>Static Members:</strong>
+<div class="memory-block static-member">totalCount = 4</div>`,
+                console: "c1 value: 10\nTotal counters: 1\nc2 value after assignment: 10\nc3 value: 10\nTotal counters: 3\nc4 value (c1 + c3): 20"
+            },
+            {
+                title: "Display c4 value",
+                classLines: [23],
+                mainLines: [21],
+                objects: `<div class="object-item">
+    <strong>c1</strong> {value: 10}
+</div>
+<div class="object-item">
+    <strong>c2</strong> {value: 10}
+</div>
+<div class="object-item">
+    <strong>c3</strong> {value: 10}
+</div>
+<div class="object-item active">
+    <strong>c4</strong> {value: 20}
+</div>`,
+                memory: `<strong>Instance Members:</strong>
+<div class="memory-block">c1.value = 10</div>
+<div class="memory-block">c2.value = 10</div>
+<div class="memory-block">c3.value = 10</div>
+<div class="memory-block" style="border-color: #dcdcaa;">c4.value = 20</div>
+<strong>Static Members:</strong>
+<div class="memory-block static-member">totalCount = 4</div>`,
+                console: "c1 value: 10\nTotal counters: 1\nc2 value after assignment: 10\nc3 value: 10\nTotal counters: 3\nc4 value (c1 + c3): 20"
+            },
+            {
+                title: "Final static count",
+                classLines: [24],
+                mainLines: [22, 23],
+                objects: `<div class="object-item">
+    <strong>c1</strong> {value: 10}
+</div>
+<div class="object-item">
+    <strong>c2</strong> {value: 10}
+</div>
+<div class="object-item">
+    <strong>c3</strong> {value: 10}
+</div>
+<div class="object-item">
+    <strong>c4</strong> {value: 20}
+</div>`,
+                memory: `<strong>Instance Members:</strong>
+<div class="memory-block">c1.value = 10</div>
+<div class="memory-block">c2.value = 10</div>
+<div class="memory-block">c3.value = 10</div>
+<div class="memory-block">c4.value = 20</div>
+<strong>Static (shared):</strong>
+<div class="memory-block static-member" style="animation: pulse 1s;">totalCount = 4</div>
+<span style="color: #4ec9b0;">All objects share this!</span>`,
+                console: "c1 value: 10\nTotal counters: 1\nc2 value after assignment: 10\nc3 value: 10\nTotal counters: 3\nc4 value (c1 + c3): 20\nTotal counters: 4"
+            },
+            {
+                title: "Program complete",
+                classLines: [],
+                mainLines: [25],
+                objects: `<div class="object-item">
+    <strong>c1</strong> {value: 10}
+</div>
+<div class="object-item">
+    <strong>c2</strong> {value: 10}
+</div>
+<div class="object-item">
+    <strong>c3</strong> {value: 10}
+</div>
+<div class="object-item">
+    <strong>c4</strong> {value: 20}
+</div>`,
+                memory: `<div style="color: #4CAF50; text-align: center;">
+<strong>Summary:</strong>
+• Static member shared by all
+• Copy constructor increments count
+• Assignment doesn't increment
+• Operator+ enables c1 + c3
+</div>`,
+                console: "c1 value: 10\nTotal counters: 1\nc2 value after assignment: 10\nc3 value: 10\nTotal counters: 3\nc4 value (c1 + c3): 20\nTotal counters: 4\n\nProgram finished with exit code 0"
+            }
+        ];
+
+        function highlightLines(elementId, lines) {
+            const element = document.getElementById(elementId);
+            const preElement = element.querySelector('pre');
+            const codeLines = preElement.innerHTML.split('\n');
+            
+            const highlightedCode = codeLines.map((line, index) => {
+                if (lines.includes(index)) {
+                    return `<span class="highlight">${line}</span>`;
+                }
+                return line;
+            }).join('\n');
+            
+            preElement.innerHTML = highlightedCode;
+            
+            // Auto-scroll to first highlighted line
+            if (lines.length > 0) {
+                const firstLine = Math.min(...lines);
+                const lineHeight = 16.5; // Approximate line height in pixels
+                element.scrollTop = Math.max(0, (firstLine - 2) * lineHeight);
+            }
+        }
+
+        function clearHighlights() {
+            const classCode = document.getElementById('classCode').querySelector('pre');
+            const mainCode = document.getElementById('mainCode').querySelector('pre');
+            
+            classCode.innerHTML = classCode.innerHTML.replace(/<span class="highlight">(.*?)<\/span>/g, '$1');
+            mainCode.innerHTML = mainCode.innerHTML.replace(/<span class="highlight">(.*?)<\/span>/g, '$1');
+        }
+
+        function showStep(stepIndex) {
+            if (stepIndex >= totalSteps) {
+                stopDemo();
+                return;
+            }
+            
+            const step = steps[stepIndex];
+            clearHighlights();
+            
+            // Highlight lines
+            if (step.classLines && step.classLines.length > 0) {
+                highlightLines('classCode', step.classLines);
+            }
+            if (step.mainLines && step.mainLines.length > 0) {
+                highlightLines('mainCode', step.mainLines);
+            }
+            
+            // Update displays with auto-scroll
+            const objectsDisplay = document.getElementById('objectsDisplay');
+            objectsDisplay.innerHTML = step.objects;
+            objectsDisplay.scrollTop = objectsDisplay.scrollHeight;
+            
+            const memoryDisplay = document.getElementById('memoryDisplay');
+            memoryDisplay.innerHTML = step.memory;
+            memoryDisplay.scrollTop = 0; // Reset to top for memory
+            
+            const consoleOutput = document.getElementById('consoleOutput');
+            consoleOutput.innerText = step.console;
+            consoleOutput.scrollTop = consoleOutput.scrollHeight; // Auto-scroll console
+            
+            // Update status
+            document.getElementById('statusMessage').innerText = `Step ${stepIndex + 1}/${totalSteps}: ${step.title}`;
+        }
+
+        function runDemo() {
+            if (isRunning) return;
+            
+            isRunning = true;
+            currentStep = 0;
+            document.getElementById('runBtn').disabled = true;
+            document.getElementById('stepBtn').disabled = true;
+            
+            stepInterval = setInterval(() => {
+                showStep(currentStep);
+                currentStep++;
+                
+                if (currentStep >= totalSteps) {
+                    stopDemo();
+                }
+            }, 2500);
+        }
+
+        function nextStep() {
+            if (currentStep >= totalSteps) {
+                currentStep = 0;
+            }
+            showStep(currentStep);
+            currentStep++;
+        }
+
+        function stopDemo() {
+            isRunning = false;
+            clearInterval(stepInterval);
+            document.getElementById('runBtn').disabled = false;
+            document.getElementById('stepBtn').disabled = false;
+            document.getElementById('statusMessage').innerHTML = '<span style="color: #4CAF50;">✓ Demo complete!</span>';
+        }
+
+        function resetDemo() {
+            stopDemo();
+            currentStep = 0;
+            clearHighlights();
+            
+            // Reset displays
+            document.getElementById('objectsDisplay').innerHTML = `
+                <div style="color: #7f8c8d; text-align: center; margin-top: 70px;">
+                    Object instances will appear here
+                </div>
+            `;
+            
+            document.getElementById('memoryDisplay').innerHTML = `
+                <div style="color: #7f8c8d; text-align: center; margin-top: 55px;">
+                    Memory allocation will appear here
+                </div>
+            `;
+            
+            document.getElementById('consoleOutput').innerText = 'Ready to run...';
+            
+            document.getElementById('statusMessage').innerHTML = '';
+            
+            document.getElementById('runBtn').disabled = false;
+            document.getElementById('stepBtn').disabled = false;
+            
+            // Reset scroll positions
+            document.getElementById('classCode').scrollTop = 0;
+            document.getElementById('mainCode').scrollTop = 0;
+            document.getElementById('objectsDisplay').scrollTop = 0;
+            document.getElementById('memoryDisplay').scrollTop = 0;
+            document.getElementById('consoleOutput').scrollTop = 0;
+        }
+
+        // Initialize
+        resetDemo();
+    </script>
+</body>
+</html>
