@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C++ Polymorphism and Abstract Classes</title>
+    <style>
+        body {
+            font-family: 'Consolas', 'Monaco', monospace;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #fff;
+            min-width: 800px;
+            overflow-x: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #4fc1ff;
+            text-shadow: 0 0 10px rgba(79, 193, 255, 0.5);
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 450px 330px;
+            gap: 20px;
+            min-width: 800px;
+            max-width: 800px;
+        }
+
+        .left-column {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .right-column {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .code-window, .hierarchy-window, .vtable-window, .console-window {
+            border: 2px solid #4a90e2;
+            border-radius: 8px;
+            background: rgba(42, 42, 46, 0.95);
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .window-header {
+            background: linear-gradient(135deg, #4a90e2, #357abd);
+            padding: 10px 15px;
+            font-weight: bold;
+            font-size: 14px;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .code-content, .hierarchy-content, .vtable-content, .console-content {
+            padding: 15px;
+            font-size: 12px;
+            line-height: 1.5;
+            font-family: 'Consolas', monospace;
+        }
+
+        .code-window {
+            height: 392px;
+        }
+
+        .code-content {
+            height: 332px;
+            overflow-y: auto;
+            background: #1e1e1e;
+        }
+
+        .hierarchy-window {
+            height: 262px;
+        }
+
+        .hierarchy-content {
+            height: 202px;
+            overflow-y: auto;
+            background: #2a2a2e;
+        }
+
+        .vtable-window {
+            height: 262px;
+        }
+
+        .vtable-content {
+            height: 202px;
+            overflow-y: auto;
+            background: #2a2a2e;
+        }
+
+        .console-window {
+            height: 206px;
+        }
+
+        .console-content {
+            height: 146px;
+            overflow-y: auto;
+            background: #0c0c0c;
+            color: #00ff00;
+        }
+
+        .code-line {
+            margin: 2px 0;
+            padding: 2px 5px;
+            border-radius: 3px;
+            transition: all 0.3s ease;
+        }
+
+        .code-line.active {
+            background: rgba(79, 193, 255, 0.4);
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .keyword { color: #ff7b72; }
+        .class-name { color: #79c0ff; }
+        .function { color: #ffa657; }
+        .string { color: #a5d6ff; }
+        .comment { color: #8b949e; font-style: italic; }
+        .number { color: #79c0ff; }
+        .virtual { color: #d2a8ff; font-weight: bold; }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .control-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #4a90e2, #357abd);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .control-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status-message {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+            color: #a5d6ff;
+            min-height: 20px;
+        }
+
+        .hierarchy-item {
+            padding: 8px;
+            margin: 4px 0;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .hierarchy-item.active {
+            background: rgba(79, 193, 255, 0.2);
+            border-left: 3px solid #4fc1ff;
+        }
+
+        .abstract-class {
+            font-style: italic;
+            color: #d2a8ff;
+        }
+
+        .vtable-entry {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 8px;
+            margin: 2px 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 3px;
+        }
+
+        .vtable-entry.active {
+            background: rgba(79, 193, 255, 0.3);
+        }
+
+        .console-line {
+            margin: 2px 0;
+            padding-left: 5px;
+        }
+
+        .arrow {
+            color: #4fc1ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-title">C++ Class Hierarchies & Polymorphism</div>
+    
+    <div class="container">
+        <div class="left-column">
+            <div class="code-window" style="height: 359px;">
+                <div class="window-header">Shape.h - Abstract Base Class</div>
+                <div class="code-content" id="abstractCode" style="height: 299px;">
+                    <div class="code-line" id="abs-line1"><span class="comment">// Abstract base class with pure virtual function</span></div>
+                    <div class="code-line" id="abs-line2"><span class="keyword">class</span> <span class="class-name">Shape</span> {</div>
+                    <div class="code-line" id="abs-line3"><span class="keyword">protected</span>:</div>
+                    <div class="code-line" id="abs-line4">    <span class="keyword">std::string</span> name;</div>
+                    <div class="code-line" id="abs-line5"><span class="keyword">public</span>:</div>
+                    <div class="code-line" id="abs-line6">    <span class="class-name">Shape</span>(<span class="keyword">const std::string</span>&amp; n) : name(n) {}</div>
+                    <div class="code-line" id="abs-line7">    </div>
+                    <div class="code-line" id="abs-line8">    <span class="comment">// Pure virtual function - makes Shape abstract</span></div>
+                    <div class="code-line" id="abs-line9">    <span class="virtual">virtual</span> <span class="keyword">double</span> <span class="function">getArea</span>() <span class="keyword">const</span> = <span class="number">0</span>;</div>
+                    <div class="code-line" id="abs-line10">    </div>
+                    <div class="code-line" id="abs-line11">    <span class="comment">// Virtual function with default implementation</span></div>
+                    <div class="code-line" id="abs-line12">    <span class="virtual">virtual</span> <span class="keyword">void</span> <span class="function">display</span>() <span class="keyword">const</span> {</div>
+                    <div class="code-line" id="abs-line13">        std::cout &lt;&lt; <span class="string">"Shape: "</span> &lt;&lt; name;</div>
+                    <div class="code-line" id="abs-line14">    }</div>
+                    <div class="code-line" id="abs-line15">    </div>
+                    <div class="code-line" id="abs-line16">    <span class="virtual">virtual</span> ~<span class="class-name">Shape</span>() {}</div>
+                    <div class="code-line" id="abs-line17">};</div>
+                </div>
+            </div>
+            
+            <div class="code-window">
+                <div class="window-header">main.cpp - Derived Classes & Polymorphism</div>
+                <div class="code-content" id="mainCode">
+                    <div class="code-line" id="main-line1"><span class="comment">// Derived class - Circle</span></div>
+                    <div class="code-line" id="main-line2"><span class="keyword">class</span> <span class="class-name">Circle</span> : <span class="keyword">public</span> <span class="class-name">Shape</span> {</div>
+                    <div class="code-line" id="main-line3"><span class="keyword">private</span>:</div>
+                    <div class="code-line" id="main-line4">    <span class="keyword">double</span> radius;</div>
+                    <div class="code-line" id="main-line5"><span class="keyword">public</span>:</div>
+                    <div class="code-line" id="main-line6">    <span class="class-name">Circle</span>(<span class="keyword">double</span> r) : <span class="class-name">Shape</span>(<span class="string">"Circle"</span>), radius(r) {}</div>
+                    <div class="code-line" id="main-line7">    </div>
+                    <div class="code-line" id="main-line8">    <span class="keyword">double</span> <span class="function">getArea</span>() <span class="keyword">const override</span> {</div>
+                    <div class="code-line" id="main-line9">        <span class="keyword">return</span> <span class="number">3.14159</span> * radius * radius;</div>
+                    <div class="code-line" id="main-line10">    }</div>
+                    <div class="code-line" id="main-line11">};</div>
+                    <div class="code-line" id="main-line12"></div>
+                    <div class="code-line" id="main-line13"><span class="comment">// Derived class - Rectangle</span></div>
+                    <div class="code-line" id="main-line14"><span class="keyword">class</span> <span class="class-name">Rectangle</span> : <span class="keyword">public</span> <span class="class-name">Shape</span> {</div>
+                    <div class="code-line" id="main-line15"><span class="keyword">private</span>:</div>
+                    <div class="code-line" id="main-line16">    <span class="keyword">double</span> width, height;</div>
+                    <div class="code-line" id="main-line17"><span class="keyword">public</span>:</div>
+                    <div class="code-line" id="main-line18">    <span class="class-name">Rectangle</span>(<span class="keyword">double</span> w, <span class="keyword">double</span> h) : </div>
+                    <div class="code-line" id="main-line19">        <span class="class-name">Shape</span>(<span class="string">"Rectangle"</span>), width(w), height(h) {}</div>
+                    <div class="code-line" id="main-line20">    </div>
+                    <div class="code-line" id="main-line21">    <span class="keyword">double</span> <span class="function">getArea</span>() <span class="keyword">const override</span> {</div>
+                    <div class="code-line" id="main-line22">        <span class="keyword">return</span> width * height;</div>
+                    <div class="code-line" id="main-line23">    }</div>
+                    <div class="code-line" id="main-line24">};</div>
+                    <div class="code-line" id="main-line25"></div>
+                    <div class="code-line" id="main-line26"><span class="keyword">int</span> <span class="function">main</span>() {</div>
+                    <div class="code-line" id="main-line27">    <span class="comment">// Polymorphic behavior through base class pointer</span></div>
+                    <div class="code-line" id="main-line28">    <span class="class-name">Shape</span>* shapes[<span class="number">2</span>];</div>
+                    <div class="code-line" id="main-line29">    shapes[<span class="number">0</span>] = <span class="keyword">new</span> <span class="class-name">Circle</span>(<span class="number">5.0</span>);</div>
+                    <div class="code-line" id="main-line30">    shapes[<span class="number">1</span>] = <span class="keyword">new</span> <span class="class-name">Rectangle</span>(<span class="number">4.0</span>, <span class="number">6.0</span>);</div>
+                    <div class="code-line" id="main-line31">    </div>
+                    <div class="code-line" id="main-line32">    <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">2</span>; i++) {</div>
+                    <div class="code-line" id="main-line33">        shapes[i]-><span class="function">display</span>();</div>
+                    <div class="code-line" id="main-line34">        std::cout &lt;&lt; <span class="string">" Area: "</span> &lt;&lt; shapes[i]-><span class="function">getArea</span>() &lt;&lt; std::endl;</div>
+                    <div class="code-line" id="main-line35">    }</div>
+                    <div class="code-line" id="main-line36">}</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="right-column">
+            <div class="hierarchy-window">
+                <div class="window-header">Class Hierarchy</div>
+                <div class="hierarchy-content" id="hierarchyDisplay">
+                    <div style="color: #7f8c8d; text-align: center; margin-top: 30px;">
+                        Class hierarchy will appear here
+                    </div>
+                </div>
+            </div>
+            
+            <div class="vtable-window">
+                <div class="window-header">Virtual Table (vtable)</div>
+                <div class="vtable-content" id="vtableDisplay">
+                    <div style="color: #7f8c8d; text-align: center; margin-top: 30px;">
+                        Virtual function table will appear here
+                    </div>
+                </div>
+            </div>
+            
+            <div class="console-window">
+                <div class="window-header">Console Output</div>
+                <div class="console-content" id="consoleOutput">
+                    <div style="color: #7f8c8d;">Ready to run...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="controls">
+        <button class="control-btn" id="runBtn" onclick="runDemo()">Run Demo</button>
+        <button class="control-btn" id="stepBtn" onclick="nextStep()">Next Step</button>
+        <button class="control-btn" id="resetBtn" onclick="resetDemo()">Reset</button>
+    </div>
+    
+    <div class="status-message" id="statusMessage"></div>
+
+    <script>
+        let currentStep = 0;
+        let animationTimeout;
+        const steps = [
+            {
+                lines: ['abs-line1', 'abs-line2'],
+                hierarchy: `<div class="hierarchy-item abstract-class">
+                    <strong>Shape</strong> (Abstract Base Class)
+                    <div style="margin-left: 20px; color: #8b949e; font-size: 11px;">
+                        Cannot be instantiated
+                    </div>
+                </div>`,
+                vtable: `<div style="color: #8b949e; text-align: center; margin-top: 20px;">
+                    Building vtable...
+                </div>`,
+                console: '',
+                status: 'Defining abstract base class Shape...'
+            },
+            {
+                lines: ['abs-line3', 'abs-line4', 'abs-line5'],
+                hierarchy: `<div class="hierarchy-item abstract-class">
+                    <strong>Shape</strong> (Abstract Base Class)
+                    <div style="margin-left: 20px; color: #8b949e; font-size: 11px;">
+                        Protected: name<br>
+                        Public interface defined
+                    </div>
+                </div>`,
+                vtable: `<div style="color: #8b949e; text-align: center; margin-top: 20px;">
+                    Building vtable...
+                </div>`,
+                console: '',
+                status: 'Adding protected and public members...'
+            },
+            {
+                lines: ['abs-line8', 'abs-line9'],
+                hierarchy: `<div class="hierarchy-item abstract-class active">
+                    <strong>Shape</strong> (Abstract Base Class)
+                    <div style="margin-left: 20px; color: #d2a8ff; font-size: 11px;">
+                        ✓ Pure virtual: getArea() = 0
+                    </div>
+                </div>`,
+                vtable: `<div class="vtable-entry active">
+                    <span style="color: #d2a8ff;">getArea()</span>
+                    <span style="color: #ff7b72;">= 0 (pure virtual)</span>
+                </div>`,
+                console: '<div class="console-line">Creating pure virtual function...</div>',
+                status: 'Pure virtual function makes Shape abstract!'
+            },
+            {
+                lines: ['abs-line11', 'abs-line12', 'abs-line13', 'abs-line14'],
+                hierarchy: `<div class="hierarchy-item abstract-class active">
+                    <strong>Shape</strong> (Abstract Base Class)
+                    <div style="margin-left: 20px; color: #d2a8ff; font-size: 11px;">
+                        ✓ Pure virtual: getArea() = 0<br>
+                        ✓ Virtual: display()
+                    </div>
+                </div>`,
+                vtable: `<div class="vtable-entry">
+                    <span style="color: #d2a8ff;">getArea()</span>
+                    <span style="color: #ff7b72;">= 0 (pure virtual)</span>
+                </div>
+                <div class="vtable-entry active">
+                    <span style="color: #79c0ff;">display()</span>
+                    <span style="color: #a5d6ff;">Shape::display()</span>
+                </div>`,
+                console: '<div class="console-line">Creating pure virtual function...</div>\n<div class="console-line">Adding virtual display() with default implementation</div>',
+                status: 'Virtual function with default implementation'
+            },
+            {
+                lines: ['main-line1', 'main-line2', 'main-line3', 'main-line4', 'main-line5', 'main-line6'],
+                hierarchy: `<div class="hierarchy-item abstract-class">
+                    <strong>Shape</strong> (Abstract Base Class)
+                </div>
+                <div class="hierarchy-item active" style="margin-left: 30px;">
+                    <span class="arrow">↳</span> <strong>Circle</strong> (Concrete Class)
+                    <div style="margin-left: 20px; color: #8b949e; font-size: 11px;">
+                        Private: radius
+                    </div>
+                </div>`,
+                vtable: `<div style="color: #8b949e; margin-bottom: 10px;">Circle vtable:</div>
+                <div class="vtable-entry active">
+                    <span style="color: #d2a8ff;">getArea()</span>
+                    <span style="color: #ffa657;">Circle::getArea()</span>
+                </div>
+                <div class="vtable-entry">
+                    <span style="color: #79c0ff;">display()</span>
+                    <span style="color: #a5d6ff;">Shape::display()</span>
+                </div>`,
+                console: '<div class="console-line">Creating pure virtual function...</div>\n<div class="console-line">Adding virtual display() with default implementation</div>\n<div class="console-line">Defining Circle class derived from Shape...</div>',
+                status: 'Creating Circle class - inherits from Shape'
+            },
+            {
+                lines: ['main-line8', 'main-line9', 'main-line10'],
+                hierarchy: `<div class="hierarchy-item abstract-class">
+                    <strong>Shape</strong> (Abstract Base Class)
+                </div>
+                <div class="hierarchy-item active" style="margin-left: 30px;">
+                    <span class="arrow">↳</span> <strong>Circle</strong> (Concrete Class)
+                    <div style="margin-left: 20px; color: #00ff00; font-size: 11px;">
+                        ✓ Implements getArea()
+                    </div>
+                </div>`,
+                vtable: `<div style="color: #8b949e; margin-bottom: 10px;">Circle vtable:</div>
+                <div class="vtable-entry active">
+                    <span style="color: #d2a8ff;">getArea()</span>
+                    <span style="color: #00ff00;">✓ Circle::getArea()</span>
+                </div>
+                <div class="vtable-entry">
+                    <span style="color: #79c0ff;">display()</span>
+                    <span style="color: #a5d6ff;">Shape::display()</span>
+                </div>`,
+                console: '<div class="console-line">Creating pure virtual function...</div>\n<div class="console-line">Adding virtual display() with default implementation</div>\n<div class="console-line">Defining Circle class derived from Shape...</div>\n<div class="console-line" style="color: #00ff00;">✓ Circle implements pure virtual getArea()</div>',
+                status: 'Circle overrides pure virtual function - now concrete!'
+            },
+            {
+                lines: ['main-line13', 'main-line14', 'main-line15', 'main-line16', 'main-line17', 'main-line18', 'main-line19'],
+                hierarchy: `<div class="hierarchy-item abstract-class">
+                    <strong>Shape</strong> (Abstract Base Class)
+                </div>
+                <div class="hierarchy-item" style="margin-left: 30px;">
+                    <span class="arrow">↳</span> <strong>Circle</strong> (Concrete Class)
+                </div>
+                <div class="hierarchy-item active" style="margin-left: 30px;">
+                    <span class="arrow">↳</span> <strong>Rectangle</strong> (Concrete Class)
+                    <div style="margin-left: 20px; color: #8b949e; font-size: 11px;">
+                        Private: width, height
+                    </div>
+                </div>`,
+                vtable: `<div style="color: #8b949e; margin-bottom: 10px;">Rectangle vtable:</div>
+                <div class="vtable-entry active">
+                    <span style="color: #d2a8ff;">getArea()</span>
+                    <span style="color: #ffa657;">Rectangle::getArea()</span>
+                </div>
+                <div class="vtable-entry">
+                    <span style="color: #79c0ff;">display()</span>
+                    <span style="color: #a5d6ff;">Shape::display()</span>
+                </div>`,
+                console: '<div class="console-line">Creating pure virtual function...</div>\n<div class="console-line">Adding virtual display() with default implementation</div>\n<div class="console-line">Defining Circle class derived from Shape...</div>\n<div class="console-line" style="color: #00ff00;">✓ Circle implements pure virtual getArea()</div>\n<div class="console-line">Defining Rectangle class derived from Shape...</div>',
+                status: 'Creating Rectangle class - another derived class'
+            },
+            {
+                lines: ['main-line21', 'main-line22', 'main-line23'],
+                hierarchy: `<div class="hierarchy-item abstract-class">
+                    <strong>Shape</strong> (Abstract Base Class)
+                </div>
+                <div class="hierarchy-item" style="margin-left: 30px;">
+                    <span class="arrow">↳</span> <strong>Circle</strong> (Concrete Class)
+                    <div style="margin-left: 20px; color: #00ff00; font-size: 11px;">
+                        ✓ Implements getArea()
+                    </div>
+                </div>
+                <div class="hierarchy-item active" style="margin-left: 30px;">
+                    <span class="arrow">↳</span> <strong>Rectangle</strong> (Concrete Class)
+                    <div style="margin-left: 20px; color: #00ff00; font-size: 11px;">
+                        ✓ Implements getArea()
+                    </div>
+                </div>`,
+                vtable: `<div style="color: #8b949e; margin-bottom: 10px;">Rectangle vtable:</div>
+                <div class="vtable-entry active">
+                    <span style="color: #d2a8ff;">getArea()</span>
+                    <span style="color: #00ff00;">✓ Rectangle::getArea()</span>
+                </div>
+                <div class="vtable-entry">
+                    <span style="color: #79c0ff;">display()</span>
+                    <span style="color: #a5d6ff;">Shape::display()</span>
+                </div>`,
+                console: '<div class="console-line">Creating pure virtual function...</div>\n<div class="console-line">Adding virtual display() with default implementation</div>\n<div class="console-line">Defining Circle class derived from Shape...</div>\n<div class="console-line" style="color: #00ff00;">✓ Circle implements pure virtual getArea()</div>\n<div class="console-line">Defining Rectangle class derived from Shape...</div>\n<div class="console-line" style="color: #00ff00;">✓ Rectangle implements pure virtual getArea()</div>',
+                status: 'Rectangle overrides pure virtual function - concrete!'
+            },
+            {
+                lines: ['main-line26', 'main-line27', 'main-line28'],
+                hierarchy: `<div class="hierarchy-item abstract-class active">
+                    <strong>Shape</strong> (Abstract Base Class)
+                </div>
+                <div class="hierarchy-item" style="margin-left: 30px;">
+                    <span class="arrow">↳</span> <strong>Circle</strong>
+                </div>
+                <div class="hierarchy-item" style="margin-left: 30px;">
+                    <span class="arrow">↳</span> <strong>Rectangle</strong>
+                </div>
+                <div style="margin-top: 15px; padding: 10px; background: rgba(79, 193, 255, 0.1); border-radius: 4px;">
+                    <strong>Polymorphic Array:</strong><br>
+                    Shape* shapes[2]
+                </div>`,
+                vtable: `<div style="color: #4fc1ff; margin-bottom: 10px;">Polymorphism in action!</div>
+                <div style="color: #8b949e; font-size: 11px;">
+                    Base class pointer array can hold<br>
+                    pointers to any derived class
+                </div>`,
+                console: '<div class="console-line">Creating pure virtual function...</div>\n<div class="console-line">Adding virtual display() with default implementation</div>\n<div class="console-line">Defining Circle class derived from Shape...</div>\n<div class="console-line" style="color: #00ff00;">✓ Circle implements pure virtual getArea()</div>\n<div class="console-line">Defining Rectangle class derived from Shape...</div>\n<div class="console-line" style="color: #00ff00;">✓ Rectangle implements pure virtual getArea()</div>\n<div class="console-line">Entering main()...</div>\n<div class="console-line">Creating polymorphic array of Shape pointers...</div>',
+                status: 'Creating polymorphic array - base class pointers'
+            },
+            {
+                lines: ['main-line29'],
+                hierarchy: `<div class="hierarchy-item abstract-class">
+                    <strong>Shape</strong> (Abstract Base Class)
+                </div>
+                <div class="hierarchy-item active" style="margin-left: 30px;">
+                    <span class="arrow">↳</span> <strong>Circle</strong>
+                </div>
+                <div class="hierarchy-item" style="margin-left: 30px;">
+                    <span class="arrow">↳</span> <strong>Rectangle</strong>
+                </div>
+                <div style="margin-top: 15px; padding: 10px; background: rgba(79, 193, 255, 0.1); border-radius: 4px;">
+                    <strong>Polymorphic Array:</strong><br>
+                    shapes[0] → Circle(5.0)<br>
+                    shapes[1] → nullptr
+                </div>`,
+                vtable: `<div style="color: #4fc1ff; margin-bottom: 10px;">Dynamic Binding:</div>
+                <div class="vtable-entry active">
+                    shapes[0]→vtable → Circle::getArea()
+                </div>`,
+                console: '<div class="console-line">Creating pure virtual function...</div>\n<div class="console-line">Adding virtual display() with default implementation</div>\n<div class="console-line">Defining Circle class derived from Shape...</div>\n<div class="console-line" style="color: #00ff00;">✓ Circle implements pure virtual getArea()</div>\n<div class="console-line">Defining Rectangle class derived from Shape...</div>\n<div class="console-line" style="color: #00ff00;">✓ Rectangle implements pure virtual getArea()</div>\n<div class="console-line">Entering main()...</div>\n<div class="console-line">Creating polymorphic array of Shape pointers...</div>\n<div class="console-line" style="color: #4fc1ff;">Creating Circle object with radius 5.0</div>',
+                status: 'Creating Circle object - assigned to Shape pointer'
+            },
+            {
+                lines: ['main-line30'],
+                hierarchy: `<div class="hierarchy-item abstract-class">
+                    <strong>Shape</strong> (Abstract Base Class)
+                </div>
+                <div class="hierarchy-item" style="margin-left: 30px;">
+                    <span class="arrow">↳</span> <strong>Circle</strong>
+                </div>
+                <div class="hierarchy-item active" style="margin-left: 30px;">
+                    <span class="arrow">↳</span> <strong>Rectangle</strong>
+                </div>
+                <div style="margin-top: 15px; padding: 10px; background: rgba(79, 193, 255, 0.1); border-radius: 4px;">
+                    <strong>Polymorphic Array:</strong><br>
+                    shapes[0] → Circle(5.0)<br>
+                    shapes[1] → Rectangle(4.0, 6.0)
+                </div>`,
+                vtable: `<div style="color: #4fc1ff; margin-bottom: 10px;">Dynamic Binding:</div>
+                <div class="vtable-entry">
+                    shapes[0]→vtable → Circle::getArea()
+                </div>
+                <div class="vtable-entry active">
+                    shapes[1]→vtable → Rectangle::getArea()
+                </div>`,
+                console: '<div class="console-line">Creating pure virtual function...</div>\n<div class="console-line">Adding virtual display() with default implementation</div>\n<div class="console-line">Defining Circle class derived from Shape...</div>\n<div class="console-line" style="color: #00ff00;">✓ Circle implements pure virtual getArea()</div>\n<div class="console-line">Defining Rectangle class derived from Shape...</div>\n<div class="console-line" style="color: #00ff00;">✓ Rectangle implements pure virtual getArea()</div>\n<div class="console-line">Entering main()...</div>\n<div class="console-line">Creating polymorphic array of Shape pointers...</div>\n<div class="console-line" style="color: #4fc1ff;">Creating Circle object with radius 5.0</div>\n<div class="console-line" style="color: #4fc1ff;">Creating Rectangle object (4.0 x 6.0)</div>',
+                status: 'Creating Rectangle object - assigned to Shape pointer'
+            },
+            {
+                lines: ['main-line32', 'main-line33'],
+                hierarchy: `<div class="hierarchy-item abstract-class">
+                    <strong>Shape</strong> (Abstract Base Class)
+                </div>
+                <div class="hierarchy-item active" style="margin-left: 30px;">
+                    <span class="arrow">↳</span> <strong>Circle</strong>
+                </div>
+                <div class="hierarchy-item" style="margin-left: 30px;">
+                    <span class="arrow">↳</span> <strong>Rectangle</strong>
+                </div>
+                <div style="margin-top: 15px; padding: 10px; background: rgba(79, 193, 255, 0.2); border-radius: 4px;">
+                    <strong style="color: #00ff00;">Polymorphic Call:</strong><br>
+                    shapes[0]→display()<br>
+                    <span style="color: #ffa657;">Uses Shape::display()</span>
+                </div>`,
+                vtable: `<div style="color: #00ff00; margin-bottom: 10px;">Virtual Function Call:</div>
+                <div class="vtable-entry active">
+                    shapes[0]→display() → Shape::display()
+                </div>
+                <div style="margin-top: 10px; color: #8b949e; font-size: 11px;">
+                    Circle inherits display() from Shape
+                </div>`,
+                console: '<div class="console-line">Creating pure virtual function...</div>\n<div class="console-line">Adding virtual display() with default implementation</div>\n<div class="console-line">Defining Circle class derived from Shape...</div>\n<div class="console-line" style="color: #00ff00;">✓ Circle implements pure virtual getArea()</div>\n<div class="console-line">Defining Rectangle class derived from Shape...</div>\n<div class="console-line" style="color: #00ff00;">✓ Rectangle implements pure virtual getArea()</div>\n<div class="console-line">Entering main()...</div>\n<div class="console-line">Creating polymorphic array of Shape pointers...</div>\n<div class="console-line" style="color: #4fc1ff;">Creating Circle object with radius 5.0</div>\n<div class="console-line" style="color: #4fc1ff;">Creating Rectangle object (4.0 x 6.0)</div>\n<div class="console-line">Looping through shapes array...</div>\n<div class="console-line" style="color: #00ff00;">Shape: Circle</div>',
+                status: 'Calling virtual display() - uses base implementation'
+            },
+            {
+                lines: ['main-line34'],
+                hierarchy: `<div class="hierarchy-item abstract-class">
+                    <strong>Shape</strong> (Abstract Base Class)
+                </div>
+                <div class="hierarchy-item active" style="margin-left: 30px;">
+                    <span class="arrow">↳</span> <strong>Circle</strong>
+                </div>
+                <div class="hierarchy-item" style="margin-left: 30px;">
+                    <span class="arrow">↳</span> <strong>Rectangle</strong>
+                </div>
+                <div style="margin-top: 15px; padding: 10px; background: rgba(79, 193, 255, 0.2); border-radius: 4px;">
+                    <strong style="color: #00ff00;">Polymorphic Call:</strong><br>
+                    shapes[0]→getArea()<br>
+                    <span style="color: #ffa657;">Calls Circle::getArea()</span>
+                </div>`,
+                vtable: `<div style="color: #00ff00; margin-bottom: 10px;">Pure Virtual Function Call:</div>
+                <div class="vtable-entry active">
+                    shapes[0]→getArea() → Circle::getArea()
+                </div>
+                <div style="margin-top: 10px; color: #d2a8ff; font-size: 11px;">
+                    Returns: 3.14159 * 5 * 5 = 78.54
+                </div>`,
+                console: '<div class="console-line">Creating pure virtual function...</div>\n<div class="console-line">Adding virtual display() with default implementation</div>\n<div class="console-line">Defining Circle class derived from Shape...</div>\n<div class="console-line" style="color: #00ff00;">✓ Circle implements pure virtual getArea()</div>\n<div class="console-line">Defining Rectangle class derived from Shape...</div>\n<div class="console-line" style="color: #00ff00;">✓ Rectangle implements pure virtual getArea()</div>\n<div class="console-line">Entering main()...</div>\n<div class="console-line">Creating polymorphic array of Shape pointers...</div>\n<div class="console-line" style="color: #4fc1ff;">Creating Circle object with radius 5.0</div>\n<div class="console-line" style="color: #4fc1ff;">Creating Rectangle object (4.0 x 6.0)</div>\n<div class="console-line">Looping through shapes array...</div>\n<div class="console-line" style="color: #00ff00;">Shape: Circle Area: 78.5398</div>',
+                status: 'Polymorphic call to getArea() - Circle version!'
+            },
+            {
+                lines: ['main-line33'],
+                hierarchy: `<div class="hierarchy-item abstract-class">
+                    <strong>Shape</strong> (Abstract Base Class)
+                </div>
+                <div class="hierarchy-item" style="margin-left: 30px;">
+                    <span class="arrow">↳</span> <strong>Circle</strong>
+                </div>
+                <div class="hierarchy-item active" style="margin-left: 30px;">
+                    <span class="arrow">↳</span> <strong>Rectangle</strong>
+                </div>
+                <div style="margin-top: 15px; padding: 10px; background: rgba(79, 193, 255, 0.2); border-radius: 4px;">
+                    <strong style="color: #00ff00;">Polymorphic Call:</strong><br>
+                    shapes[1]→display()<br>
+                    <span style="color: #ffa657;">Uses Shape::display()</span>
+                </div>`,
+                vtable: `<div style="color: #00ff00; margin-bottom: 10px;">Virtual Function Call:</div>
+                <div class="vtable-entry active">
+                    shapes[1]→display() → Shape::display()
+                </div>
+                <div style="margin-top: 10px; color: #8b949e; font-size: 11px;">
+                    Rectangle inherits display() from Shape
+                </div>`,
+                console: '<div class="console-line">Creating pure virtual function...</div>\n<div class="console-line">Adding virtual display() with default implementation</div>\n<div class="console-line">Defining Circle class derived from Shape...</div>\n<div class="console-line" style="color: #00ff00;">✓ Circle implements pure virtual getArea()</div>\n<div class="console-line">Defining Rectangle class derived from Shape...</div>\n<div class="console-line" style="color: #00ff00;">✓ Rectangle implements pure virtual getArea()</div>\n<div class="console-line">Entering main()...</div>\n<div class="console-line">Creating polymorphic array of Shape pointers...</div>\n<div class="console-line" style="color: #4fc1ff;">Creating Circle object with radius 5.0</div>\n<div class="console-line" style="color: #4fc1ff;">Creating Rectangle object (4.0 x 6.0)</div>\n<div class="console-line">Looping through shapes array...</div>\n<div class="console-line" style="color: #00ff00;">Shape: Circle Area: 78.5398</div>\n<div class="console-line" style="color: #00ff00;">Shape: Rectangle</div>',
+                status: 'Calling virtual display() on Rectangle'
+            },
+            {
+                lines: ['main-line34'],
+                hierarchy: `<div class="hierarchy-item abstract-class">
+                    <strong>Shape</strong> (Abstract Base Class)
+                </div>
+                <div class="hierarchy-item" style="margin-left: 30px;">
+                    <span class="arrow">↳</span> <strong>Circle</strong>
+                </div>
+                <div class="hierarchy-item active" style="margin-left: 30px;">
+                    <span class="arrow">↳</span> <strong>Rectangle</strong>
+                </div>
+                <div style="margin-top: 15px; padding: 10px; background: rgba(79, 193, 255, 0.2); border-radius: 4px;">
+                    <strong style="color: #00ff00;">Polymorphic Call:</strong><br>
+                    shapes[1]→getArea()<br>
+                    <span style="color: #ffa657;">Calls Rectangle::getArea()</span>
+                </div>`,
+                vtable: `<div style="color: #00ff00; margin-bottom: 10px;">Pure Virtual Function Call:</div>
+                <div class="vtable-entry active">
+                    shapes[1]→getArea() → Rectangle::getArea()
+                </div>
+                <div style="margin-top: 10px; color: #d2a8ff; font-size: 11px;">
+                    Returns: 4 * 6 = 24
+                </div>`,
+                console: '<div class="console-line">Creating pure virtual function...</div>\n<div class="console-line">Adding virtual display() with default implementation</div>\n<div class="console-line">Defining Circle class derived from Shape...</div>\n<div class="console-line" style="color: #00ff00;">✓ Circle implements pure virtual getArea()</div>\n<div class="console-line">Defining Rectangle class derived from Shape...</div>\n<div class="console-line" style="color: #00ff00;">✓ Rectangle implements pure virtual getArea()</div>\n<div class="console-line">Entering main()...</div>\n<div class="console-line">Creating polymorphic array of Shape pointers...</div>\n<div class="console-line" style="color: #4fc1ff;">Creating Circle object with radius 5.0</div>\n<div class="console-line" style="color: #4fc1ff;">Creating Rectangle object (4.0 x 6.0)</div>\n<div class="console-line">Looping through shapes array...</div>\n<div class="console-line" style="color: #00ff00;">Shape: Circle Area: 78.5398</div>\n<div class="console-line" style="color: #00ff00;">Shape: Rectangle Area: 24</div>',
+                status: 'Polymorphic call to getArea() - Rectangle version!'
+            },
+            {
+                lines: ['main-line36'],
+                hierarchy: `<div class="hierarchy-item abstract-class active">
+                    <strong>Shape</strong> (Abstract Base Class)
+                </div>
+                <div class="hierarchy-item active" style="margin-left: 30px;">
+                    <span class="arrow">↳</span> <strong>Circle</strong>
+                </div>
+                <div class="hierarchy-item active" style="margin-left: 30px;">
+                    <span class="arrow">↳</span> <strong>Rectangle</strong>
+                </div>
+                <div style="margin-top: 15px; padding: 10px; background: rgba(79, 193, 255, 0.3); border-radius: 4px; border: 2px solid #4fc1ff;">
+                    <strong style="color: #00ff00;">✓ Polymorphism Complete!</strong><br>
+                    Same interface, different behaviors<br>
+                    Virtual functions resolved at runtime
+                </div>`,
+                vtable: `<div style="color: #00ff00; margin-bottom: 10px; text-align: center;">
+                    <strong>Dynamic Dispatch Success!</strong>
+                </div>
+                <div style="color: #4fc1ff; font-size: 11px; text-align: center;">
+                    Each object's vtable pointer<br>
+                    directed to correct implementation
+                </div>`,
+                console: '<div class="console-line">Creating pure virtual function...</div>\n<div class="console-line">Adding virtual display() with default implementation</div>\n<div class="console-line">Defining Circle class derived from Shape...</div>\n<div class="console-line" style="color: #00ff00;">✓ Circle implements pure virtual getArea()</div>\n<div class="console-line">Defining Rectangle class derived from Shape...</div>\n<div class="console-line" style="color: #00ff00;">✓ Rectangle implements pure virtual getArea()</div>\n<div class="console-line">Entering main()...</div>\n<div class="console-line">Creating polymorphic array of Shape pointers...</div>\n<div class="console-line" style="color: #4fc1ff;">Creating Circle object with radius 5.0</div>\n<div class="console-line" style="color: #4fc1ff;">Creating Rectangle object (4.0 x 6.0)</div>\n<div class="console-line">Looping through shapes array...</div>\n<div class="console-line" style="color: #00ff00;">Shape: Circle Area: 78.5398</div>\n<div class="console-line" style="color: #00ff00;">Shape: Rectangle Area: 24</div>\n<div class="console-line">Program completed successfully!</div>',
+                status: 'Demo complete - Polymorphism in action!'
+            }
+        ];
+
+        function clearHighlights() {
+            document.querySelectorAll('.code-line').forEach(line => {
+                line.classList.remove('active');
+            });
+            document.querySelectorAll('.hierarchy-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelectorAll('.vtable-entry').forEach(entry => {
+                entry.classList.remove('active');
+            });
+        }
+
+        function showStep(step) {
+            clearHighlights();
+            
+            // Highlight code lines
+            if (step.lines) {
+                step.lines.forEach(lineId => {
+                    const line = document.getElementById(lineId);
+                    if (line) {
+                        line.classList.add('active');
+                        line.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }
+                });
+            }
+            
+            // Update displays
+            document.getElementById('hierarchyDisplay').innerHTML = step.hierarchy;
+            document.getElementById('vtableDisplay').innerHTML = step.vtable;
+            document.getElementById('consoleOutput').innerHTML = step.console;
+            document.getElementById('statusMessage').textContent = step.status;
+        }
+
+        function runDemo() {
+            currentStep = 0;
+            document.getElementById('runBtn').disabled = true;
+            document.getElementById('stepBtn').disabled = true;
+            document.getElementById('resetBtn').disabled = true;
+            
+            function runNextStep() {
+                if (currentStep < steps.length) {
+                    showStep(steps[currentStep]);
+                    currentStep++;
+                    animationTimeout = setTimeout(runNextStep, 2000);
+                } else {
+                    document.getElementById('resetBtn').disabled = false;
+                    document.getElementById('statusMessage').textContent = 'Demo complete! Click Reset to run again.';
+                }
+            }
+            
+            runNextStep();
+        }
+
+        function nextStep() {
+            if (currentStep < steps.length) {
+                showStep(steps[currentStep]);
+                currentStep++;
+                
+                if (currentStep >= steps.length) {
+                    document.getElementById('stepBtn').disabled = true;
+                    document.getElementById('statusMessage').textContent = 'Demo complete! Click Reset to start over.';
+                }
+            }
+        }
+
+        function resetDemo() {
+            currentStep = 0;
+            clearTimeout(animationTimeout);
+            clearHighlights();
+            
+            document.getElementById('hierarchyDisplay').innerHTML = `
+                <div style="color: #7f8c8d; text-align: center; margin-top: 30px;">
+                    Class hierarchy will appear here
+                </div>
+            `;
+            
+            document.getElementById('vtableDisplay').innerHTML = `
+                <div style="color: #7f8c8d; text-align: center; margin-top: 30px;">
+                    Virtual function table will appear here
+                </div>
+            `;
+            
+            document.getElementById('consoleOutput').innerHTML = 
+                '<div style="color: #7f8c8d;">Ready to run...</div>';
+            
+            document.getElementById('statusMessage').textContent = '';
+            
+            document.getElementById('runBtn').disabled = false;
+            document.getElementById('stepBtn').disabled = false;
+            document.getElementById('resetBtn').disabled = false;
+        }
+    </script>
+</body>
+</html>
