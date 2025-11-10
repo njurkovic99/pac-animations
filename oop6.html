@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C++ Aggregation & Object Conversion</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 1400px;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .content {
+            display: flex;
+            height: 720px;
+        }
+
+        .code-section {
+            flex: 3;
+            padding: 30px;
+            background: #282c34;
+            overflow-y: auto;
+        }
+
+        .visualization-section {
+            flex: 2;
+            padding: 20px;
+            background: #f8f9fa;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        pre {
+            color: #abb2bf;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            line-height: 1.8;
+            white-space: pre;
+        }
+
+        .keyword { color: #c678dd; }
+        .type { color: #e06c75; }
+        .function { color: #61dafb; }
+        .string { color: #98c379; }
+        .comment { color: #5c6370; font-style: italic; }
+        .number { color: #d19a66; }
+        .operator { color: #56b6c2; }
+
+        .highlight-line {
+            background: rgba(97, 218, 251, 0.1);
+            display: inline-block;
+            width: calc(100% + 60px);
+            border-left: 3px solid #61dafb;
+            padding-left: 27px;
+            margin-left: -30px;
+            animation: glow 0.5s ease-in-out;
+        }
+
+        @keyframes glow {
+            0% { background: rgba(97, 218, 251, 0.3); }
+            100% { background: rgba(97, 218, 251, 0.1); }
+        }
+
+        .controls {
+            padding: 20px 30px;
+            background: #f0f0f0;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .memory-container {
+            flex: 1;
+            margin-bottom: 20px;
+        }
+
+        .console-container {
+            background: #1e1e1e;
+            border-radius: 10px;
+            padding: 15px;
+            min-height: 240px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            color: #00ff00;
+            font-size: 13px;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .memory-title, .console-title {
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            color: #333;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .memory-block {
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .memory-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 5px;
+            margin: -15px -15px 10px -15px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .memory-content {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .member-var {
+            padding: 5px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .member-var:last-child {
+            border-bottom: none;
+        }
+
+        .pointer {
+            color: #f39c12;
+            font-weight: bold;
+        }
+
+        .aggregation-arrow {
+            text-align: center;
+            color: #667eea;
+            font-size: 24px;
+            margin: 10px 0;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .console-line {
+            margin: 5px 0;
+            opacity: 0;
+            animation: typeIn 0.3s forwards;
+        }
+
+        @keyframes typeIn {
+            to {
+                opacity: 1;
+            }
+        }
+
+        .console-prompt {
+            color: #888;
+        }
+
+        .console-output {
+            color: #4CAF50;
+        }
+
+        .console-conversion {
+            color: #FFC107;
+        }
+
+        .step-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(102, 126, 234, 0.1);
+            padding: 10px 20px;
+            border-radius: 20px;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .concept-note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px;
+            margin: 15px 0;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .concept-note strong {
+            color: #856404;
+        }
+
+        .address-label {
+            color: #888;
+            font-size: 11px;
+            font-style: italic;
+        }
+
+        .conversion-highlight {
+            background: #fff3cd;
+            padding: 2px 4px;
+            border-radius: 3px;
+            animation: pulse 1s ease-in-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% { background: #fff3cd; }
+            50% { background: #ffeaa7; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>C++ Aggregation & Object Conversion</h1>
+            <p>Understanding class relationships and type conversions</p>
+        </div>
+        
+        <div class="content">
+            <div class="code-section">
+                <pre id="code"><span id="line0"><span class="comment">// Aggregation and Object Conversion Demo</span></span>
+<span id="line1"><span class="keyword">#include</span> <span class="string">&lt;iostream&gt;</span></span>
+<span id="line2"><span class="keyword">#include</span> <span class="string">&lt;string&gt;</span></span>
+<span id="line3"><span class="keyword">using namespace</span> std;</span>
+
+<span id="line4"><span class="keyword">class</span> <span class="type">Engine</span> {</span>
+<span id="line5"><span class="keyword">private</span>:</span>
+<span id="line6">    <span class="type">string</span> type;</span>
+<span id="line7">    <span class="type">int</span> horsepower;</span>
+<span id="line8"><span class="keyword">public</span>:</span>
+<span id="line9">    <span class="function">Engine</span>(<span class="type">string</span> t, <span class="type">int</span> hp) : type(t), horsepower(hp) {</span>
+<span id="line10">        cout <span class="operator">&lt;&lt;</span> <span class="string">"Engine created: "</span> <span class="operator">&lt;&lt;</span> type <span class="operator">&lt;&lt;</span> endl;</span>
+<span id="line11">    }</span>
+<span id="line12">    </span>
+<span id="line13">    <span class="comment">// Conversion operator to int (returns horsepower)</span></span>
+<span id="line14">    <span class="keyword">operator</span> <span class="type">int</span>() <span class="keyword">const</span> { <span class="keyword">return</span> horsepower; }</span>
+<span id="line15">    </span>
+<span id="line16">    <span class="type">string</span> <span class="function">getType</span>() <span class="keyword">const</span> { <span class="keyword">return</span> type; }</span>
+<span id="line17">};</span>
+
+<span id="line18"><span class="keyword">class</span> <span class="type">Car</span> {</span>
+<span id="line19"><span class="keyword">private</span>:</span>
+<span id="line20">    <span class="type">string</span> model;</span>
+<span id="line21">    <span class="type">Engine</span>* engine;  <span class="comment">// Aggregation - Car HAS-A Engine</span></span>
+<span id="line22">    <span class="type">double</span> price;</span>
+<span id="line23"><span class="keyword">public</span>:</span>
+<span id="line24">    <span class="function">Car</span>(<span class="type">string</span> m, <span class="type">double</span> p) : model(m), engine(<span class="keyword">nullptr</span>), price(p) {</span>
+<span id="line25">        cout <span class="operator">&lt;&lt;</span> <span class="string">"Car created: "</span> <span class="operator">&lt;&lt;</span> model <span class="operator">&lt;&lt;</span> endl;</span>
+<span id="line26">    }</span>
+<span id="line27">    </span>
+<span id="line28">    <span class="type">void</span> <span class="function">installEngine</span>(<span class="type">Engine</span>* e) {</span>
+<span id="line29">        engine = e;</span>
+<span id="line30">        cout <span class="operator">&lt;&lt;</span> <span class="string">"Engine installed in "</span> <span class="operator">&lt;&lt;</span> model <span class="operator">&lt;&lt;</span> endl;</span>
+<span id="line31">    }</span>
+<span id="line32">    </span>
+<span id="line33">    <span class="comment">// Conversion operator to double (returns price)</span></span>
+<span id="line34">    <span class="keyword">operator</span> <span class="type">double</span>() <span class="keyword">const</span> { <span class="keyword">return</span> price; }</span>
+<span id="line35">    </span>
+<span id="line36">    <span class="type">int</span> <span class="function">getHorsepower</span>() <span class="keyword">const</span> {</span>
+<span id="line37">        <span class="keyword">if</span> (engine) {</span>
+<span id="line38">            <span class="keyword">return</span> <span class="keyword">static_cast</span>&lt;<span class="type">int</span>&gt;(*engine);  <span class="comment">// Object conversion</span></span>
+<span id="line39">        }</span>
+<span id="line40">        <span class="keyword">return</span> <span class="number">0</span>;</span>
+<span id="line41">    }</span>
+<span id="line42">};</span>
+
+<span id="line43"><span class="keyword">int</span> <span class="function">main</span>() {</span>
+<span id="line44">    cout <span class="operator">&lt;&lt;</span> <span class="string">"=== Starting Program ==="</span> <span class="operator">&lt;&lt;</span> endl;</span>
+<span id="line45">    </span>
+<span id="line46">    <span class="comment">// Create an Engine object</span></span>
+<span id="line47">    <span class="type">Engine</span> v8Engine(<span class="string">"V8 Turbo"</span>, <span class="number">450</span>);</span>
+<span id="line48">    </span>
+<span id="line49">    <span class="comment">// Create a Car object</span></span>
+<span id="line50">    <span class="type">Car</span> sportsCar(<span class="string">"Ferrari F8"</span>, <span class="number">280000.0</span>);</span>
+<span id="line51">    </span>
+<span id="line52">    <span class="comment">// Aggregation: Car uses Engine (doesn't own it)</span></span>
+<span id="line53">    sportsCar.<span class="function">installEngine</span>(&v8Engine);</span>
+<span id="line54">    </span>
+<span id="line55">    <span class="comment">// Object Conversion: Engine to int</span></span>
+<span id="line56">    <span class="type">int</span> hp = v8Engine;  <span class="comment">// Implicit conversion</span></span>
+<span id="line57">    cout <span class="operator">&lt;&lt;</span> <span class="string">"Engine horsepower (via conversion): "</span> <span class="operator">&lt;&lt;</span> hp <span class="operator">&lt;&lt;</span> endl;</span>
+<span id="line58">    </span>
+<span id="line59">    <span class="comment">// Object Conversion: Car to double</span></span>
+<span id="line60">    <span class="type">double</span> carPrice = sportsCar;  <span class="comment">// Implicit conversion</span></span>
+<span id="line61">    cout <span class="operator">&lt;&lt;</span> <span class="string">"Car price (via conversion): $"</span> <span class="operator">&lt;&lt;</span> carPrice <span class="operator">&lt;&lt;</span> endl;</span>
+<span id="line62">    </span>
+<span id="line63">    <span class="comment">// Using conversion within member function</span></span>
+<span id="line64">    cout <span class="operator">&lt;&lt;</span> <span class="string">"Total HP from car: "</span> <span class="operator">&lt;&lt;</span> sportsCar.<span class="function">getHorsepower</span>() <span class="operator">&lt;&lt;</span> endl;</span>
+<span id="line65">    </span>
+<span id="line66">    cout <span class="operator">&lt;&lt;</span> <span class="string">"=== Program Complete ==="</span> <span class="operator">&lt;&lt;</span> endl;</span>
+<span id="line67">    <span class="keyword">return</span> <span class="number">0</span>;</span>
+<span id="line68">}</span></pre>
+            </div>
+            
+            <div class="visualization-section">
+                <div class="memory-container">
+                    <div class="memory-title">📦 Memory State</div>
+                    <div id="memory-view">
+                        <div class="concept-note">
+                            <strong>Ready to start!</strong> Click "Next Step" to begin execution and see how aggregation and object conversion work in C++.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="console-container">
+                    <div class="console-title">🖥️ Console Output</div>
+                    <div id="console-output">
+                        <div class="console-line"><span class="console-prompt">$</span> ./program</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button onclick="reset()">🔄 Reset</button>
+            <button onclick="nextStep()" id="stepBtn">▶️ Next Step</button>
+            <button onclick="runAll()">⏩ Run All</button>
+            <button onclick="skipToAggregation()">📎 Skip to Aggregation</button>
+            <button onclick="skipToConversion()">🔄 Skip to Conversion</button>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 0;
+        const maxSteps = 18;
+        let consoleLines = [];
+        
+        const steps = [
+            { line: 43, memory: 'main() function starts', console: null },
+            { line: 44, memory: null, console: '=== Starting Program ===' },
+            { line: 47, memory: 'Creating Engine object', console: 'Engine created: V8 Turbo' },
+            { line: 50, memory: 'Creating Car object', console: 'Car created: Ferrari F8' },
+            { line: 53, memory: 'Aggregation: Linking Car to Engine', console: 'Engine installed in Ferrari F8' },
+            { line: 56, memory: 'Converting Engine to int', console: null },
+            { line: 57, memory: null, console: 'Engine horsepower (via conversion): 450' },
+            { line: 60, memory: 'Converting Car to double', console: null },
+            { line: 61, memory: null, console: 'Car price (via conversion): $280000' },
+            { line: 64, memory: 'Calling getHorsepower()', console: 'Total HP from car: 450' },
+            { line: 66, memory: null, console: '=== Program Complete ===' },
+            { line: 67, memory: 'Program ends', console: null }
+        ];
+
+        function highlightLine(lineNum) {
+            document.querySelectorAll('.highlight-line').forEach(el => {
+                el.classList.remove('highlight-line');
+            });
+            
+            if (lineNum !== null) {
+                const line = document.getElementById('line' + lineNum);
+                if (line) {
+                    line.classList.add('highlight-line');
+                    line.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        }
+
+        function updateMemory(step) {
+            const memoryView = document.getElementById('memory-view');
+            let html = '';
+
+            if (step === 0) {
+                html = `
+                    <div class="concept-note">
+                        <strong>Ready to start!</strong> Click "Next Step" to begin execution and see how aggregation and object conversion work in C++.
+                    </div>
+                `;
+            } else if (step === 1) {
+                html = `
+                    <div class="memory-block">
+                        <div class="memory-header">Stack Frame: main()</div>
+                        <div class="memory-content">
+                            <div class="member-var">Function started <span class="address-label">@ 0x7ffc3a2b</span></div>
+                        </div>
+                    </div>
+                `;
+            } else if (step === 3) {
+                html = `
+                    <div class="memory-block">
+                        <div class="memory-header">Stack: main() - Local Variables</div>
+                        <div class="memory-content">
+                            <div class="member-var"><strong>v8Engine</strong> (Engine) <span class="address-label">@ 0x7ffc3a30</span></div>
+                            <div class="member-var">&nbsp;&nbsp;├─ type: "V8 Turbo"</div>
+                            <div class="member-var">&nbsp;&nbsp;└─ horsepower: 450</div>
+                        </div>
+                    </div>
+                `;
+            } else if (step === 4) {
+                html = `
+                    <div class="memory-block">
+                        <div class="memory-header">Stack: main() - Local Variables</div>
+                        <div class="memory-content">
+                            <div class="member-var"><strong>v8Engine</strong> (Engine) <span class="address-label">@ 0x7ffc3a30</span></div>
+                            <div class="member-var">&nbsp;&nbsp;├─ type: "V8 Turbo"</div>
+                            <div class="member-var">&nbsp;&nbsp;└─ horsepower: 450</div>
+                            <div style="margin: 10px 0;"></div>
+                            <div class="member-var"><strong>sportsCar</strong> (Car) <span class="address-label">@ 0x7ffc3a48</span></div>
+                            <div class="member-var">&nbsp;&nbsp;├─ model: "Ferrari F8"</div>
+                            <div class="member-var">&nbsp;&nbsp;├─ engine: <span class="pointer">nullptr</span></div>
+                            <div class="member-var">&nbsp;&nbsp;└─ price: 280000.0</div>
+                        </div>
+                    </div>
+                `;
+            } else if (step === 5) {
+                html = `
+                    <div class="memory-block">
+                        <div class="memory-header">Stack: main() - After Aggregation</div>
+                        <div class="memory-content">
+                            <div class="member-var"><strong>v8Engine</strong> (Engine) <span class="address-label">@ 0x7ffc3a30</span></div>
+                            <div class="member-var">&nbsp;&nbsp;├─ type: "V8 Turbo"</div>
+                            <div class="member-var">&nbsp;&nbsp;└─ horsepower: 450</div>
+                        </div>
+                    </div>
+                    <div class="aggregation-arrow">⬇️</div>
+                    <div class="memory-block">
+                        <div class="memory-header">Aggregation Relationship</div>
+                        <div class="memory-content">
+                            <div class="member-var"><strong>sportsCar</strong> (Car) <span class="address-label">@ 0x7ffc3a48</span></div>
+                            <div class="member-var">&nbsp;&nbsp;├─ model: "Ferrari F8"</div>
+                            <div class="member-var">&nbsp;&nbsp;├─ engine: <span class="pointer">0x7ffc3a30</span> → v8Engine</div>
+                            <div class="member-var">&nbsp;&nbsp;└─ price: 280000.0</div>
+                        </div>
+                    </div>
+                    <div class="concept-note">
+                        <strong>Aggregation:</strong> Car HAS-A Engine through a pointer. The Engine exists independently.
+                    </div>
+                `;
+            } else if (step === 6) {
+                html = `
+                    <div class="memory-block">
+                        <div class="memory-header">Object Conversion: Engine → int</div>
+                        <div class="memory-content">
+                            <div class="member-var"><strong>v8Engine</strong> (Engine)</div>
+                            <div class="member-var conversion-highlight">&nbsp;&nbsp;operator int() returns: 450</div>
+                            <div style="margin: 10px 0;"></div>
+                            <div class="member-var"><strong>hp</strong> (int) = <span class="conversion-highlight">450</span></div>
+                        </div>
+                    </div>
+                    <div class="concept-note">
+                        <strong>Implicit Conversion:</strong> Engine's operator int() automatically converts the object to its horsepower value.
+                    </div>
+                `;
+            } else if (step === 8) {
+                html = `
+                    <div class="memory-block">
+                        <div class="memory-header">Object Conversion: Car → double</div>
+                        <div class="memory-content">
+                            <div class="member-var"><strong>sportsCar</strong> (Car)</div>
+                            <div class="member-var conversion-highlight">&nbsp;&nbsp;operator double() returns: 280000.0</div>
+                            <div style="margin: 10px 0;"></div>
+                            <div class="member-var"><strong>carPrice</strong> (double) = <span class="conversion-highlight">280000.0</span></div>
+                        </div>
+                    </div>
+                    <div class="concept-note">
+                        <strong>Implicit Conversion:</strong> Car's operator double() automatically converts the object to its price value.
+                    </div>
+                `;
+            } else if (step === 10) {
+                html = `
+                    <div class="memory-block">
+                        <div class="memory-header">Using Conversion in Member Function</div>
+                        <div class="memory-content">
+                            <div class="member-var">sportsCar.getHorsepower():</div>
+                            <div class="member-var">&nbsp;&nbsp;1. Check engine pointer ✓</div>
+                            <div class="member-var">&nbsp;&nbsp;2. Convert *engine to int</div>
+                            <div class="member-var conversion-highlight">&nbsp;&nbsp;3. Return 450</div>
+                        </div>
+                    </div>
+                    <div class="concept-note">
+                        <strong>Combined Concepts:</strong> The function uses both aggregation (accessing engine via pointer) and conversion (engine to int).
+                    </div>
+                `;
+            } else if (step >= 11) {
+                html = `
+                    <div class="memory-block">
+                        <div class="memory-header">Program Complete</div>
+                        <div class="memory-content">
+                            <div class="member-var">All objects destroyed in reverse order</div>
+                            <div class="member-var">sportsCar destroyed</div>
+                            <div class="member-var">v8Engine destroyed</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            memoryView.innerHTML = html;
+        }
+
+        function updateConsole(step) {
+            const consoleOutput = document.getElementById('console-output');
+            
+            if (step < steps.length && steps[step].console) {
+                const newLine = document.createElement('div');
+                newLine.className = 'console-line';
+                newLine.innerHTML = `<span class="console-output">${steps[step].console}</span>`;
+                consoleOutput.appendChild(newLine);
+                
+                // Auto-scroll console
+                consoleOutput.scrollTop = consoleOutput.scrollHeight;
+            }
+        }
+
+        function nextStep() {
+            if (currentStep < steps.length) {
+                if (steps[currentStep].line !== null) {
+                    highlightLine(steps[currentStep].line);
+                }
+                if (steps[currentStep].memory) {
+                    updateMemory(currentStep + 1);
+                }
+                updateConsole(currentStep);
+                currentStep++;
+                
+                // Update button state
+                const btn = document.getElementById('stepBtn');
+                if (currentStep >= steps.length) {
+                    btn.disabled = true;
+                    btn.textContent = '✓ Complete';
+                }
+            }
+        }
+
+        function reset() {
+            currentStep = 0;
+            highlightLine(null);
+            updateMemory(0);
+            document.getElementById('console-output').innerHTML = '<div class="console-line"><span class="console-prompt">$</span> ./program</div>';
+            
+            const btn = document.getElementById('stepBtn');
+            btn.disabled = false;
+            btn.textContent = '▶️ Next Step';
+        }
+
+        function runAll() {
+            reset();
+            const interval = setInterval(() => {
+                nextStep();
+                if (currentStep >= steps.length) {
+                    clearInterval(interval);
+                }
+            }, 500);
+        }
+
+        function skipToAggregation() {
+            reset();
+            for (let i = 0; i < 5; i++) {
+                nextStep();
+            }
+        }
+
+        function skipToConversion() {
+            reset();
+            for (let i = 0; i < 6; i++) {
+                nextStep();
+            }
+        }
+
+        // Initialize
+        updateMemory(0);
+    </script>
+</body>
+</html>
